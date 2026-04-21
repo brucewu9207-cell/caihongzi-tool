@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>对外汉语教学神器 - 笔画部件 & 双行字帖版 v46.1</title>
+    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.1</title>
     <!-- 引入 Hanzi Writer -->
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <!-- 引入 pinyin-pro 用于获取拼音 -->
@@ -15,7 +15,8 @@
         
         /* 顶部控制栏 */
         .no-print { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; justify-content: center; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        input { padding: 12px; width: 60px; border-radius: 12px; border: 2px solid #ddd; text-align: center; font-size: 22px; outline: none; transition: border-color 0.3s;}
+        /* 修改：输入框宽度增加以支持词语 */
+        input { padding: 12px; width: 260px; border-radius: 12px; border: 2px solid #ddd; text-align: center; font-size: 22px; outline: none; transition: border-color 0.3s;}
         input:focus { border-color: var(--secondary); }
         
         button, .btn-link { 
@@ -31,16 +32,22 @@
         .btn-dl-comp { background: #e74c3c; } 
         .btn-dl-worksheet { background: #2c3e50; }
         
+        /* 【新增代码位置】句子导出的按钮样式 */
+        .btn-sentence { background: #16a085; }
+
         button span, .btn-link span { display: block; font-size: 11px; font-weight: normal; opacity: 0.9; margin-top: 2px;}
         button:hover, .btn-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2);}
         
         /* 预览卡片区 */
-        .canvas-area { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; max-width: 1200px;}
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; min-width: 280px;}
+        .canvas-area { display: flex; flex-direction: column; gap: 30px; justify-content: center; width: 100%; max-width: 1200px;}
+        /* 新增：词语展示容器 */
+        .word-row-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; min-width: 280px; position: relative;}
         
         /* 页面拼音/翻译显示样式 */
-        .pinyin-display { font-size: 24px; font-weight: bold; color: #FF8C42; margin-bottom: 2px; height: 30px; }
-        .meaning-display { font-size: 14px; color: #666; margin-bottom: 10px; font-style: italic; height: 20px; }
+        .pinyin-display { font-size: 24px; font-weight: bold; color: #FF8C42; margin-bottom: 2px; min-height: 30px; }
+        .meaning-display { font-size: 14px; color: #666; margin-bottom: 10px; font-style: italic; min-height: 20px; }
 
         .grid-container { position: relative; width: 240px; height: 240px; border: 2px solid #333; background: white; overflow: hidden; border-radius: 8px;}
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
@@ -50,6 +57,9 @@
 
         /* 部件显示区 */
         .components-panel { width: 100%; max-width: 1100px; background: white; padding: 20px; border-radius: 24px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .comp-group { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .comp-group:last-child { border-bottom: none; }
+        .comp-group-title { font-size: 14px; font-weight: bold; color: #3F8EFC; margin-bottom: 8px; }
         .comp-display { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;}
         .comp-item { width: 150px; height: 150px; border: 2px dashed #ddd; border-radius: 12px; position: relative; background: #fafafa; flex-shrink: 0;}
 
@@ -57,7 +67,11 @@
         .worksheet-panel { width: 100%; max-width: 1100px; background: white; padding: 30px; border-radius: 24px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .worksheet-row-wrapper { overflow-x: auto; margin-top: 15px; padding-bottom: 10px; }
         .worksheet-row { display: flex; flex-wrap: nowrap; gap: 2px; background: #333; padding: 2px; width: fit-content; margin-bottom: 5px; }
+        /* 【新增代码位置】句子书写格子的样式封装 */
+        .sentence-cell-box { display: flex; flex-direction: column; align-items: center; background: white; flex-shrink: 0; }
+        .sentence-pinyin { height: 25px; font-size: 12px; color: #FF8C42; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .worksheet-cell { width: 85px; height: 85px; position: relative; background: white; flex-shrink: 0; }
+        
         .row-label { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
         .row-label i { font-style: normal; background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 12px;}
 
@@ -84,10 +98,11 @@
 </head>
 <body>
 
-<div class="header-title">👨‍🏫 中文课堂：汉字综合教学工具 (v46.1)</div>
+<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.1)</div>
 
 <div class="no-print">
-    <input type="text" id="charInput" maxlength="1" value="美">
+    <!-- 修改：不再限制字数长度 -->
+    <input type="text" id="charInput" value="你好">
     <button class="btn-gen" onclick="initAll()">生成并演示<br><span>Generate & Play</span></button>
     <a href="https://www.hanzipi.com" target="_blank" class="btn-link btn-hanzipi">参考汉字皮<br><span>HanziPi.com</span></a>
     
@@ -98,6 +113,8 @@
     <button class="btn-dl-strokes" onclick="downloadAllStrokes()">🌈 下载彩色笔画<span>Transparent PNG</span></button>
     <button class="btn-dl-comp" onclick="downloadComponents()">🧩 下载汉字部件<span>Transparent PNG</span></button>
     <button class="btn-dl-worksheet" onclick="downloadWorksheet()">📥 下载双行字帖<span>Download Sheet</span></button>
+    <!-- 【新增代码位置】句子导出的按钮 -->
+    <button class="btn-sentence" onclick="downloadSentenceWorksheet()">📝 导出句子练习纸<span>Sentence Practice</span></button>
 </div>
 
 <div class="modal-overlay" id="downloadModal">
@@ -114,52 +131,28 @@
     </div>
 </div>
 
-<div class="canvas-area">
-    <div class="card">
-        <div class="pinyin-display"></div>
-        <div class="meaning-display"></div>
-        <div id="target1" class="grid-container"></div>
-        <div class="label">彩虹笔顺图</div>
-    </div>
-    <div class="card">
-        <div class="pinyin-display"></div>
-        <div class="meaning-display"></div>
-        <div id="target2" class="grid-container"></div>
-        <div class="label">循环动画</div>
-        <div class="stroke-mode-toggle no-print" style="margin-top: 10px;">
-            <button class="stroke-mode-btn active" id="btnAnimRainbow" onclick="setAnimMode('rainbow')">🌈 彩虹</button>
-            <button class="stroke-mode-btn" id="btnAnimComponent" onclick="setAnimMode('component')">🧩 部件</button>
-        </div>
-    </div>
-    <div class="card">
-        <div class="pinyin-display"></div>
-        <div class="meaning-display"></div>
-        <div id="target3" class="grid-container"></div>
-        <div class="label">空心轮廓</div>
-    </div>
+<div class="canvas-area" id="canvasArea">
+    <!-- 动态生成多字展示区域 -->
 </div>
 
 <div class="components-panel">
     <div class="row-label">🧩 汉字部件拆解 (Radical / Components)</div>
-    <div id="compDisplay" class="comp-display"></div>
+    <div id="compDisplayRoot"></div>
 </div>
 
 <div class="worksheet-panel" id="worksheetArea">
     <div class="row-label" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-        <span><i>ROW 1</i> 笔顺展示行 (Stroke Order Guide)</span>
+        <span>📖 综合字帖行 (Comprehensive Practice Sheets)</span>
         <div class="stroke-mode-toggle no-print">
             <button class="stroke-mode-btn active" id="btnModeRainbow" onclick="setStrokeMode('rainbow')">🌈 彩虹笔画</button>
             <button class="stroke-mode-btn" id="btnModeComponent" onclick="setStrokeMode('component')">🧩 部件着色</button>
         </div>
     </div>
-    <div class="worksheet-row-wrapper">
-        <div id="row1" class="worksheet-row"></div>
-    </div>
-    <div style="height: 20px;"></div>
-    <div class="row-label"><i>ROW 2</i> 跟写练习行 (Practice & Self-Write)</div>
-    <div class="worksheet-row-wrapper">
-        <div id="row2" class="worksheet-row"></div>
-    </div>
+    <!-- 动态生成练习行 -->
+    <div id="worksheetRowsRoot"></div>
+    
+    <!-- 【新增代码位置】专门展示句子字帖预览的容器 -->
+    <div id="sentenceWorksheetRoot" style="margin-top: 30px;"></div>
 </div>
 
 <canvas id="exportCanvas" style="display:none;"></canvas>
@@ -167,8 +160,8 @@
 
 <script>
     const apiKey = ""; 
-    let writer = null;
-    let charDataGlobal = null;
+    let writers = []; // 修改：支持多字动画实例
+    let charDataArray = []; // 修改：存储整个词组的数据
     let currentMeaning = "";
     let isLooping = false;
     let currentDownloadType = ''; 
@@ -179,8 +172,9 @@
     let currentStrokeMode = 'rainbow'; 
     let currentAnimMode = 'rainbow';   
 
-    async function getTranslation(char) {
-        const prompt = `Translate the Chinese character "${char}" to a concise 1-2 word English definition. Return only the English word(s).`;
+    // 修改：支持翻译词组
+    async function getTranslation(text) {
+        const prompt = `Translate the Chinese word or sentence "${text}" to a concise 1-3 word English definition. Return only the English word(s).`;
         const systemPrompt = "You are a helpful dictionary. Provide only the concise translation.";
         let retries = 0;
         const maxRetries = 5;
@@ -195,8 +189,8 @@
                     })
                 });
                 const result = await response.json();
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                return text ? text.trim() : "Definition N/A";
+                const resText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                return resText ? resText.trim() : "Definition N/A";
             } catch (e) {
                 retries++;
                 const delay = Math.pow(2, retries) * 500;
@@ -206,42 +200,111 @@
         return "Error fetching";
     }
 
+    // 修改：核心初始化函数，支持多字
     async function initAll() {
         isLooping = false;
-        writer = null;
-        const char = document.getElementById('charInput').value || '美';
-        const pinyinText = pinyinPro.pinyin(char);
-        document.querySelectorAll('.pinyin-display').forEach(el => el.textContent = pinyinText);
-        document.querySelectorAll('.meaning-display').forEach(el => el.textContent = "Loading...");
-        getTranslation(char).then(meaning => {
+        writers = [];
+        charDataArray = [];
+        const inputText = document.getElementById('charInput').value || '美';
+        const chars = Array.from(inputText).filter(c => /\p{Unified_Ideograph}/u.test(c)); // 过滤出汉字
+        
+        if(chars.length === 0) return;
+
+        // 清理旧内容
+        document.getElementById('canvasArea').innerHTML = '';
+        document.getElementById('compDisplayRoot').innerHTML = '';
+        document.getElementById('worksheetRowsRoot').innerHTML = '';
+        document.getElementById('sentenceWorksheetRoot').innerHTML = ''; // 【新增】清理句子区
+
+        // 全局拼音与翻译
+        const fullPinyin = pinyinPro.pinyin(inputText);
+        getTranslation(inputText).then(meaning => {
             currentMeaning = meaning;
-            document.querySelectorAll('.meaning-display').forEach(el => el.textContent = meaning);
         });
-        ['target1', 'target2', 'target3', 'compDisplay', 'row1', 'row2'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.innerHTML = '';
-        });
-        try {
-            const data = await HanziWriter.loadCharacterData(char);
-            charDataGlobal = data;
-            const t1 = document.getElementById('target1');
-            t1.appendChild(createGridSvg(240));
-            t1.appendChild(generateSvgGroup(data.strokes, data.medians, true));
-            writer = HanziWriter.create('target2', char, {
-                width: 240, height: 240, padding: 20, showOutline: true,
-                strokeAnimationSpeed: 1.5, delayBetweenStrokes: 150,
-                onLoadCharDataSuccess: function() {
-                    applyAnimColors();
-                    isLooping = true;
-                    runInfiniteAnimation();
+
+        // 1. 创建三行展示区（彩虹图、动画、空心）
+        const labels = ['彩虹笔顺图', '循环动画', '空心轮廓'];
+        labels.forEach((label, groupIdx) => {
+            const section = document.createElement('div');
+            section.innerHTML = `<div class="row-label" style="justify-content:center; font-size:18px; margin-top:10px;">${label}</div>`;
+            const rowContainer = document.createElement('div');
+            rowContainer.className = 'word-row-container';
+            
+            chars.forEach((char, charIdx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const pinyin = pinyinPro.pinyin(char);
+                const targetId = `target_${groupIdx}_${charIdx}`;
+                
+                card.innerHTML = `
+                    <div class="pinyin-display">${pinyin}</div>
+                    <div class="meaning-display" id="meaning_${groupIdx}_${charIdx}">...</div>
+                    <div id="${targetId}" class="grid-container"></div>
+                `;
+                
+                if (groupIdx === 1 && charIdx === 0) { // 仅在动画组的第一个卡片显示切换按钮
+                    const toggle = document.createElement('div');
+                    toggle.className = 'stroke-mode-toggle no-print';
+                    toggle.style.marginTop = '10px';
+                    toggle.innerHTML = `
+                        <button class="stroke-mode-btn active" id="btnAnimRainbow" onclick="setAnimMode('rainbow')">🌈 彩虹</button>
+                        <button class="stroke-mode-btn" id="btnAnimComponent" onclick="setAnimMode('component')">🧩 部件</button>
+                    `;
+                    card.appendChild(toggle);
                 }
+
+                rowContainer.appendChild(card);
             });
-            const t3 = document.getElementById('target3');
-            t3.appendChild(createGridSvg(240));
-            t3.appendChild(generateSvgGroup(data.strokes, null, false, null, true));
-            analyzeAndDisplayComponents(data);
-            buildWorksheet(char, data);
-        } catch (e) { console.error(e); }
+            section.appendChild(rowContainer);
+            document.getElementById('canvasArea').appendChild(section);
+        });
+
+        // 2. 加载数据并渲染
+        for (let i = 0; i < chars.length; i++) {
+            const char = chars[i];
+            try {
+                const data = await HanziWriter.loadCharacterData(char);
+                charDataArray.push({ char, data });
+
+                // 渲染彩虹图 (target 0)
+                const t0 = document.getElementById(`target_0_${i}`);
+                t0.appendChild(createGridSvg(240));
+                t0.appendChild(generateSvgGroup(data.strokes, data.medians, true));
+
+                // 初始化动画 (target 1)
+                const w = HanziWriter.create(`target_1_${i}`, char, {
+                    width: 240, height: 240, padding: 20, showOutline: true,
+                    strokeAnimationSpeed: 1.5, delayBetweenStrokes: 150
+                });
+                writers.push(w);
+
+                // 渲染空心图 (target 2)
+                const t2 = document.getElementById(`target_2_${i}`);
+                t2.appendChild(createGridSvg(240));
+                t2.appendChild(generateSvgGroup(data.strokes, null, false, null, true));
+
+                // 词义展示（单个字展示简短翻译）
+                getTranslation(char).then(m => {
+                    for(let g=0; g<3; g++) {
+                        const el = document.getElementById(`meaning_${g}_${i}`);
+                        if(el) el.textContent = m;
+                    }
+                });
+
+                // 部件拆解
+                analyzeAndDisplayComponents(char, data, i);
+                
+            } catch (e) { console.error(e); }
+        }
+
+        // 启动动画循环
+        isLooping = true;
+        applyAnimColors();
+        runInfiniteAnimation();
+
+        // 3. 构建字帖
+        buildWorksheet(chars, charDataArray);
+        buildSentenceWorksheet(chars, charDataArray); // 【新增】构建句子预览
     }
 
     function createGridSvg(size = 380, color = "#e0e0e0", isBold = false) {
@@ -257,7 +320,7 @@
         return svg;
     }
 
-    function generateSvgGroup(strokes, medians, showNumber, colorOverride = null, isOutline = false) {
+    function generateSvgGroup(strokes, medians, showNumber, colorOverride = null, isOutline = false, highlightIndex = null) {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", "0 0 1024 1024");
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -274,7 +337,12 @@
             strokes.forEach((pathData, i) => {
                 const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 p.setAttribute("d", pathData); 
-                p.setAttribute("fill", colorOverride || COLORS[i % COLORS.length]);
+                // 修复逻辑：如果是指定高亮某笔，其余设为透明
+                if (highlightIndex !== null) {
+                    p.setAttribute("fill", i === highlightIndex ? (colorOverride || COLORS[i % COLORS.length]) : "rgba(0,0,0,0)");
+                } else {
+                    p.setAttribute("fill", colorOverride || COLORS[i % COLORS.length]);
+                }
                 g.appendChild(p);
             });
         }
@@ -324,19 +392,20 @@
     }
 
     function runInfiniteAnimation() {
-        if (!isLooping || !writer) return;
-        const currentWriter = writer;
-        try {
-            currentWriter.animateCharacter({
-                onComplete: () => {
-                    if (isLooping && writer === currentWriter) {
-                        setTimeout(() => {
-                            if (isLooping && writer === currentWriter) runInfiniteAnimation();
-                        }, 2000);
-                    }
-                }
+        if (!isLooping || writers.length === 0) return;
+        
+        // 同时启动所有字的动画
+        const promises = writers.map(w => {
+            return new Promise(resolve => {
+                w.animateCharacter({ onComplete: resolve });
             });
-        } catch(e) { console.warn('Animation error:', e); }
+        });
+
+        Promise.all(promises).then(() => {
+            if (isLooping) {
+                setTimeout(runInfiniteAnimation, 2000);
+            }
+        });
     }
 
     function showDownloadOptions(type) {
@@ -348,62 +417,51 @@
         document.getElementById('downloadModal').style.display = 'none';
     }
 
+    // 修改：执行下载，如果是多字则打包合成
     async function executeDownload(mode) {
         closeModal();
-        const char = document.getElementById('charInput').value;
-        let svg;
-        let suffix = '';
-        if (currentDownloadType === 'main') {
-            svg = generateSvgGroup(charDataGlobal.strokes, charDataGlobal.medians, true);
-            suffix = '_彩虹图';
-        } else {
-            svg = generateSvgGroup(charDataGlobal.strokes, null, false, null, true);
-            suffix = '_空心轮廓';
-        }
-        // 普通下载保持白色背景以便查看
-        await exportSingleSvg(svg, `${char}${suffix}.png`, mode, false);
-    }
+        const inputText = document.getElementById('charInput').value;
+        const canvas = document.getElementById('exportCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const count = charDataArray.length;
+        const showPinyin = (mode === 'full' || mode === 'pinyin');
+        const showEnglish = (mode === 'full' || mode === 'english');
+        const headerHeight = (showPinyin || showEnglish) ? 200 : 0;
+        
+        // 画布尺寸：横向排列所有字
+        canvas.width = 1024 * count;
+        canvas.height = 1024 + headerHeight;
+        
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    async function exportSingleSvg(svg, filename, mode = 'none', transparent = false) {
-        return new Promise(resolve => {
-            const canvas = document.getElementById('exportCanvas');
-            const ctx = canvas.getContext('2d');
-            const char = document.getElementById('charInput').value;
-            const showPinyin = (mode === 'full' || mode === 'pinyin');
-            const showEnglish = (mode === 'full' || mode === 'english');
-            const headerHeight = (showPinyin || showEnglish) ? 200 : 0;
-            canvas.width = 1024;
-            canvas.height = 1024 + headerHeight;
+        for(let i=0; i<count; i++) {
+            const char = charDataArray[i].char;
+            const data = charDataArray[i].data;
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (!transparent) {
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
+            // 拼音与翻译（由于是词组下载，上方显示全词拼音或单字拼音）
             if (showPinyin) {
-                const pinyinStr = mode === 'english' ? pinyinPro.pinyin(char, {toneType: 'none'}) : pinyinPro.pinyin(char);
+                const py = mode === 'english' ? pinyinPro.pinyin(char, {toneType: 'none'}) : pinyinPro.pinyin(char);
                 ctx.fillStyle = "#FF8C42";
-                ctx.font = "bold 80px 'PingFang SC', 'Microsoft YaHei'";
+                ctx.font = "bold 80px 'PingFang SC'";
                 ctx.textAlign = "center";
-                ctx.fillText(pinyinStr, canvas.width / 2, 90);
-            }
-            if (showEnglish) {
-                const yPos = showPinyin ? 160 : 120;
-                ctx.fillStyle = "#666";
-                ctx.font = "italic 45px 'PingFang SC', 'Microsoft YaHei'";
-                ctx.textAlign = "center";
-                ctx.fillText(currentMeaning, canvas.width / 2, yPos);
+                ctx.fillText(py, (i * 1024) + 512, 90);
             }
 
-            drawSvgToCanvas(svg, ctx, 0, headerHeight, 1024).then(() => {
-                const link = document.createElement("a");
-                link.href = canvas.toDataURL("image/png"); 
-                link.download = filename;
-                link.click(); 
-                resolve();
-            });
-        });
+            let svg;
+            if (currentDownloadType === 'main') {
+                svg = generateSvgGroup(data.strokes, data.medians, true);
+            } else {
+                svg = generateSvgGroup(data.strokes, null, false, null, true);
+            }
+            await drawSvgToCanvas(svg, ctx, i * 1024, headerHeight, 1024);
+        }
+
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png"); 
+        link.download = `${inputText}_${currentDownloadType}.png`;
+        link.click();
     }
 
     function drawSvgToCanvas(svg, ctx, x, y, size) {
@@ -419,8 +477,16 @@
         });
     }
 
-    function analyzeAndDisplayComponents(data) {
-        const container = document.getElementById('compDisplay');
+    // 修改：支持词组部件展示
+    function analyzeAndDisplayComponents(char, data, charIdx) {
+        const root = document.getElementById('compDisplayRoot');
+        const group = document.createElement('div');
+        group.className = 'comp-group';
+        group.innerHTML = `<div class="comp-group-title">「${char}」的部件：</div>`;
+        
+        const container = document.createElement('div');
+        container.className = 'comp-display';
+        
         const total = data.strokes.length;
         let comps = [];
         if (data.radStrokes) {
@@ -436,28 +502,34 @@
             box.appendChild(generateSvgGroup(c.indices.map(i=>data.strokes[i]), null, false, c.color));
             container.appendChild(box);
         });
-        charDataGlobal.comps = comps;
+        group.appendChild(container);
+        root.appendChild(group);
+        
+        // 存储用于导出的部件信息
+        charDataArray[charIdx].comps = comps;
     }
 
     function applyAnimColors() {
-        if (!writer || !charDataGlobal) return;
-        const data = charDataGlobal;
-        if (currentAnimMode === 'component') {
-            if (data.radStrokes && data.radStrokes.length > 0) {
-                const radSet = new Set(data.radStrokes);
-                data.strokes.forEach((_, i) => {
-                    writer.updateColor(`stroke${i}`, radSet.has(i) ? '#E74C3C' : '#3498DB');
-                });
+        if (writers.length === 0) return;
+        writers.forEach((w, idx) => {
+            const data = charDataArray[idx].data;
+            if (currentAnimMode === 'component') {
+                if (data.radStrokes && data.radStrokes.length > 0) {
+                    const radSet = new Set(data.radStrokes);
+                    data.strokes.forEach((_, i) => {
+                        w.updateColor(`stroke${i}`, radSet.has(i) ? '#E74C3C' : '#3498DB');
+                    });
+                } else {
+                    data.strokes.forEach((_, i) => {
+                        w.updateColor(`stroke${i}`, i % 2 === 0 ? '#E74C3C' : '#3498DB');
+                    });
+                }
             } else {
                 data.strokes.forEach((_, i) => {
-                    writer.updateColor(`stroke${i}`, i % 2 === 0 ? '#E74C3C' : '#3498DB');
+                    w.updateColor(`stroke${i}`, COLORS[i % COLORS.length]);
                 });
             }
-        } else {
-            data.strokes.forEach((_, i) => {
-                writer.updateColor(`stroke${i}`, COLORS[i % COLORS.length]);
-            });
-        }
+        });
     }
 
     function setAnimMode(mode) {
@@ -471,7 +543,7 @@
         currentStrokeMode = mode;
         document.getElementById('btnModeRainbow').classList.toggle('active', mode === 'rainbow');
         document.getElementById('btnModeComponent').classList.toggle('active', mode === 'component');
-        if (charDataGlobal) buildWorksheet(document.getElementById('charInput').value, charDataGlobal);
+        if (charDataArray.length > 0) buildWorksheet(null, charDataArray);
     }
 
     function getComponentColorMap(data) {
@@ -490,34 +562,93 @@
         return map;
     }
 
-    function buildWorksheet(char, data) {
-        const row1 = document.getElementById('row1');
-        const row2 = document.getElementById('row2');
-        row1.innerHTML = ''; row2.innerHTML = '';
-        const total = data.strokes.length;
-        const compColorMap = getComponentColorMap(data);
-        for(let i = 1; i <= total; i++) {
-            const cell = createCell();
-            if (currentStrokeMode === 'component') {
-                const strokeSubset = data.strokes.slice(0, i);
-                cell.appendChild(generateSvgGroupColored(strokeSubset, null, false, compColorMap, 0));
-            } else {
-                cell.appendChild(generateSvgGroup(data.strokes.slice(0, i), null, false, "#333"));
+    // 修改：支持多字字帖构建
+    function buildWorksheet(chars, dataArr) {
+        const root = document.getElementById('worksheetRowsRoot');
+        root.innerHTML = '';
+        
+        dataArr.forEach((item, idx) => {
+            const char = item.char;
+            const data = item.data;
+            
+            const charWrapper = document.createElement('div');
+            charWrapper.style.marginBottom = "30px";
+            charWrapper.innerHTML = `<div class="row-label"><i>汉字 ${idx+1}</i>：${char}</div>`;
+
+            // 第一行：笔顺展示
+            const row1 = document.createElement('div');
+            row1.className = 'worksheet-row-wrapper';
+            const row1Content = document.createElement('div');
+            row1Content.className = 'worksheet-row';
+            
+            const total = data.strokes.length;
+            const compColorMap = getComponentColorMap(data);
+            for(let i = 1; i <= total; i++) {
+                const cell = createCell();
+                if (currentStrokeMode === 'component') {
+                    const strokeSubset = data.strokes.slice(0, i);
+                    cell.appendChild(generateSvgGroupColored(strokeSubset, null, false, compColorMap, 0));
+                } else {
+                    cell.appendChild(generateSvgGroup(data.strokes.slice(0, i), null, false, "#333"));
+                }
+                row1Content.appendChild(cell);
             }
-            row1.appendChild(cell);
-        }
-        const fullCell = createCell();
-        fullCell.appendChild(generateSvgGroup(data.strokes, data.medians, true));
-        row1.appendChild(fullCell);
-        const row2Total = total + 1;
-        const practiceColors = ["#333", "#eee", "#eee", "#eee", "#eee"];
-        for (let i = 0; i < row2Total; i++) {
-            const cell = createCell();
-            if (i < practiceColors.length) {
-                cell.appendChild(generateSvgGroup(data.strokes, null, false, practiceColors[i]));
+            // 完整字（彩虹）
+            const fullCell = createCell();
+            fullCell.appendChild(generateSvgGroup(data.strokes, data.medians, true));
+            row1Content.appendChild(fullCell);
+            row1.appendChild(row1Content);
+
+            // 第二行：临摹
+            const row2 = document.createElement('div');
+            row2.className = 'worksheet-row-wrapper';
+            const row2Content = document.createElement('div');
+            row2Content.className = 'worksheet-row';
+            const practiceColors = ["#333", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee"];
+            for (let i = 0; i < 8; i++) {
+                const cell = createCell();
+                if (i < practiceColors.length) {
+                    cell.appendChild(generateSvgGroup(data.strokes, null, false, practiceColors[i]));
+                }
+                row2Content.appendChild(cell);
             }
-            row2.appendChild(cell);
-        }
+            row2.appendChild(row2Content);
+
+            charWrapper.appendChild(row1);
+            charWrapper.appendChild(row2);
+            root.appendChild(charWrapper);
+        });
+    }
+
+    // 【新增代码位置】构建句子练习纸的预览
+    function buildSentenceWorksheet(chars, dataArr) {
+        const root = document.getElementById('sentenceWorksheetRoot');
+        root.innerHTML = `<div class="row-label">📝 句子练习纸预览 (Sentence Sheet Preview)</div>`;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'worksheet-row-wrapper';
+        const row = document.createElement('div');
+        row.className = 'worksheet-row';
+        row.id = "sentenceRowPreview";
+
+        dataArr.forEach((item) => {
+            const box = document.createElement('div');
+            box.className = 'sentence-cell-box';
+            
+            const pinyinDiv = document.createElement('div');
+            pinyinDiv.className = 'sentence-pinyin';
+            pinyinDiv.textContent = pinyinPro.pinyin(item.char);
+            
+            const cell = createCell();
+            cell.appendChild(generateSvgGroup(item.data.strokes, null, false, "#eee")); // 浅色临摹背景
+            
+            box.appendChild(pinyinDiv);
+            box.appendChild(cell);
+            row.appendChild(box);
+        });
+        
+        wrapper.appendChild(row);
+        root.appendChild(wrapper);
     }
 
     function createCell() {
@@ -527,50 +658,134 @@
         return cell;
     }
 
+    // 修复后的批量下载逻辑
     async function downloadAllStrokes() {
-        const char = document.getElementById('charInput').value;
-        const allStrokes = charDataGlobal.strokes;
-        for(let i=0; i<allStrokes.length; i++) {
-            const svg = generateSvgGroup([allStrokes[i]], null, false, COLORS[i % COLORS.length]);
-            // 笔画下载默认为透明且不带标注
-            await exportSingleSvg(svg, `${char}_第${i+1}笔.png`, 'none', true);
-            await new Promise(r => setTimeout(r, 200));
+        const inputText = document.getElementById('charInput').value;
+        for(const item of charDataArray) {
+            const char = item.char;
+            const allStrokes = item.data.strokes;
+            for(let i=0; i<allStrokes.length; i++) {
+                // 修改点：传入完整的 allStrokes，但指定当前高亮索引 i。
+                // 这样能保持 SVG 的 Bounds/视口一致，防止浏览器渲染丢失。
+                const svg = generateSvgGroup(allStrokes, null, false, COLORS[i % COLORS.length], false, i);
+                await exportSingleSvg(svg, `${char}_第${i+1}笔.png`, 'none', true);
+                await new Promise(r => setTimeout(r, 200));
+            }
         }
     }
 
+    // 修改：支持批量下载所有部件
     async function downloadComponents() {
-        const char = document.getElementById('charInput').value;
-        for(const c of charDataGlobal.comps) {
-            const svg = generateSvgGroup(c.indices.map(idx=>charDataGlobal.strokes[idx]), null, false, c.color);
-            // 部件下载默认为透明且不带标注
-            await exportSingleSvg(svg, `${char}_${c.name}.png`, 'none', true);
-            await new Promise(r => setTimeout(r, 200));
+        for(const item of charDataArray) {
+            const char = item.char;
+            for(const c of item.comps) {
+                const svg = generateSvgGroup(c.indices.map(idx=>item.data.strokes[idx]), null, false, c.color);
+                await exportSingleSvg(svg, `${char}_${c.name}.png`, 'none', true);
+                await new Promise(r => setTimeout(r, 200));
+            }
         }
     }
 
+    // 辅助导出函数
+    async function exportSingleSvg(svg, filename, mode = 'none', transparent = false) {
+        return new Promise(resolve => {
+            const canvas = document.getElementById('exportCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            ctx.clearRect(0, 0, 1024, 1024);
+            if (!transparent) { ctx.fillStyle = "white"; ctx.fillRect(0, 0, 1024, 1024); }
+            drawSvgToCanvas(svg, ctx, 0, 0, 1024).then(() => {
+                const link = document.createElement("a");
+                link.href = canvas.toDataURL("image/png"); 
+                link.download = filename;
+                link.click(); 
+                resolve();
+            });
+        });
+    }
+
+    // 修改：字帖下载支持长词组
     async function downloadWorksheet() {
-        const char = document.getElementById('charInput').value || '字';
-        const row1Cells = document.getElementById('row1').children;
-        const row2Cells = document.getElementById('row2').children;
+        const inputText = document.getElementById('charInput').value || '字';
         const cellSize = 400; const padding = 40;
         const sheetCanvas = document.getElementById('sheetCanvas');
         const ctx = sheetCanvas.getContext('2d');
-        const colCount = Math.max(row1Cells.length, row2Cells.length);
-        sheetCanvas.width = cellSize * colCount; sheetCanvas.height = cellSize * 2 + padding;
+        
+        // 计算最大宽度
+        let maxCols = 0;
+        const wrappers = document.querySelectorAll('.worksheet-row');
+        wrappers.forEach(w => { if(w.children.length > maxCols) maxCols = w.children.length; });
+
+        sheetCanvas.width = cellSize * maxCols; 
+        sheetCanvas.height = (cellSize * 2 + padding * 2) * charDataArray.length;
+        
         ctx.fillStyle = "white"; ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
-        for(let i=0; i<row1Cells.length; i++) {
-            const svgs = row1Cells[i].querySelectorAll('svg');
-            if(svgs[0]) await drawSvgToCanvas(svgs[0], ctx, i * cellSize, 0, cellSize);
-            if(svgs[1]) await drawSvgToCanvas(svgs[1], ctx, i * cellSize, 0, cellSize);
-            ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(i * cellSize, 0, cellSize, cellSize);
+        
+        const rows = document.querySelectorAll('.worksheet-row');
+        for(let i=0; i<rows.length; i++) {
+            const cells = rows[i].children;
+            if (cells[0] && cells[0].classList.contains('sentence-cell-box')) continue; // 跳过句子预览行
+
+            const yOffset = Math.floor(i/2) * (cellSize * 2 + padding * 2) + (i % 2 === 1 ? cellSize + padding : 0);
+            
+            for(let j=0; j<cells.length; j++) {
+                const svgs = cells[j].querySelectorAll('svg');
+                if(svgs[0]) await drawSvgToCanvas(svgs[0], ctx, j * cellSize, yOffset, cellSize);
+                if(svgs[1]) await drawSvgToCanvas(svgs[1], ctx, j * cellSize, yOffset, cellSize);
+                ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(j * cellSize, yOffset, cellSize, cellSize);
+            }
         }
-        for(let i=0; i<row2Cells.length; i++) {
-            const svgs = row2Cells[i].querySelectorAll('svg');
-            if(svgs[0]) await drawSvgToCanvas(svgs[0], ctx, i * cellSize, cellSize + padding, cellSize);
-            if(svgs[1]) await drawSvgToCanvas(svgs[1], ctx, i * cellSize, cellSize + padding, cellSize);
-            ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(i * cellSize, cellSize + padding, cellSize, cellSize);
+        
+        const link = document.createElement('a'); 
+        link.download = `${inputText}_全词双行练习帖.png`; 
+        link.href = sheetCanvas.toDataURL("image/png"); 
+        link.click();
+    }
+
+    // 【新增代码位置】句子导出的具体逻辑函数
+    async function downloadSentenceWorksheet() {
+        const inputText = document.getElementById('charInput').value || '句子';
+        const cellSize = 400; 
+        const pinyinHeight = 120;
+        const sheetCanvas = document.getElementById('sheetCanvas');
+        const ctx = sheetCanvas.getContext('2d');
+        
+        const count = charDataArray.length;
+        sheetCanvas.width = cellSize * count;
+        sheetCanvas.height = cellSize + pinyinHeight;
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
+
+        for(let i=0; i<count; i++) {
+            const item = charDataArray[i];
+            const x = i * cellSize;
+
+            // 1. 绘制拼音
+            ctx.fillStyle = "#FF8C42";
+            ctx.font = "bold 60px 'PingFang SC'";
+            ctx.textAlign = "center";
+            ctx.fillText(pinyinPro.pinyin(item.char), x + cellSize/2, 80);
+
+            // 2. 绘制田字格背景
+            const gridSvg = createGridSvg(cellSize, "#ccc");
+            await drawSvgToCanvas(gridSvg, ctx, x, pinyinHeight, cellSize);
+
+            // 3. 绘制浅色字(临摹用)
+            const charSvg = generateSvgGroup(item.data.strokes, null, false, "#eee");
+            await drawSvgToCanvas(charSvg, ctx, x, pinyinHeight, cellSize);
+
+            // 4. 绘制边框
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, pinyinHeight, cellSize, cellSize);
         }
-        const link = document.createElement('a'); link.download = `${char}_双行练习字帖.png`; link.href = sheetCanvas.toDataURL("image/png"); link.click();
+
+        const link = document.createElement('a'); 
+        link.download = `${inputText}_句子书写练习纸.png`; 
+        link.href = sheetCanvas.toDataURL("image/png"); 
+        link.click();
     }
 
     window.onload = initAll;
