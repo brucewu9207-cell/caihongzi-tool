@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.6</title>
+    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.10</title>
     <!-- 引入 Hanzi Writer -->
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <!-- 引入 pinyin-pro 用于获取拼音 -->
@@ -17,8 +17,15 @@
         
         /* 顶部控制栏 */
         .no-print { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; justify-content: center; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        input { padding: 12px; width: 260px; border-radius: 12px; border: 2px solid #ddd; text-align: center; font-size: 22px; outline: none; transition: border-color 0.3s;}
-        input:focus { border-color: var(--secondary); }
+        
+        /* 输入框与语音识别按钮 */
+        .input-wrapper { position: relative; display: inline-flex; align-items: center; }
+        input[type="text"] { padding: 12px 40px 12px 12px; width: 260px; border-radius: 12px; border: 2px solid #ddd; text-align: center; font-size: 22px; outline: none; transition: border-color 0.3s; box-sizing: border-box;}
+        input[type="text"]:focus { border-color: var(--secondary); }
+        .mic-btn { position: absolute; right: 10px; font-size: 20px; cursor: pointer; background: none; border: none; padding: 5px; outline: none; border-radius: 50%; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .mic-btn:hover { background: #f0f0f0; transform: scale(1.1); }
+        @keyframes pulseMic { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+        .mic-btn.recording { animation: pulseMic 1.5s infinite; background: #fadbd8; }
         
         button, .btn-link { 
             padding: 10px 15px; border: none; border-radius: 12px; cursor: pointer; color: white; 
@@ -34,6 +41,7 @@
         .btn-dl-worksheet { background: #2c3e50; }
         .btn-sentence { background: #16a085; }
         .btn-anim-dl { background: #6c3483; }
+        .btn-tts-studio { background: #8e44ad; font-size: 15px; padding: 12px 20px; }
 
         .anim-modal-progress { width: 100%; height: 10px; background: #eee; border-radius: 8px; overflow: hidden; margin: 10px 0 6px; }
         .anim-modal-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #6c3483, #a569bd); border-radius: 8px; transition: width 0.2s; }
@@ -47,7 +55,6 @@
         
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; min-width: 280px; max-width: 340px; position: relative;}
         
-        /* FIX START: 添加 HSK 标签的样式，采用绝对定位以避免影响卡片原有布局 */
         .hsk-badge {
             position: absolute;
             top: 15px;
@@ -61,13 +68,12 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             z-index: 10;
         }
-        /* FIX END */
 
         .pinyin-display { font-size: 24px; font-weight: bold; color: #FF8C42; margin-bottom: 2px; min-height: 30px; }
         .meaning-display { font-size: 13px; color: #666; margin-bottom: 2px; font-style: italic; min-height: 18px; }
         .meaning-ar { font-size: 13px; color: #8E44AD; margin-bottom: 8px; font-style: italic; min-height: 18px; direction: rtl; font-family: 'Arial', sans-serif; }
         
-        /* 卡片内组词面板样式优化 */
+        /* 卡片内组词面板样式 */
         .words-in-card { width: 100%; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px; }
         .words-char-group { margin-bottom: 10px; }
         .words-char-title { font-size: 14px; font-weight: bold; color: #3F8EFC; margin-bottom: 8px; border-left: 3px solid #3F8EFC; padding-left: 8px; }
@@ -76,15 +82,25 @@
         .word-item-hanzi { font-size: 18px; font-weight: bold; color: #E74C3C; }
         .word-item-py { font-size: 13px; color: #FF8C42; font-weight: bold; }
         
-        /* 组词翻译部分 */
         .word-item-trans-box { margin: 4px 0 8px 0; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
         .word-item-en { color: #555; }
         .word-item-ar { color: #8E44AD; direction: rtl; text-align: right; font-family: 'Arial', sans-serif; font-size: 12px;}
 
         /* 例句部分 */
-        .word-item-ex { font-size: 12px; color: #333; margin-top: 6px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 5px; font-weight: bold;}
+        .word-item-ex-py { font-size: 12px; color: #E67E22; margin-top: 6px; padding-top: 5px; border-top: 1px solid #eee; font-family: 'Arial', sans-serif;}
+        .word-item-ex { font-size: 12px; color: #333; margin-top: 2px; line-height: 1.4; font-weight: bold;}
         .word-item-ex-en { font-size: 11px; color: #777; font-style: italic; display: block; margin-top: 2px;}
         .word-item-ex-ar { font-size: 11px; color: #9B59B6; font-style: italic; direction: rtl; text-align: right; display: block; margin-top: 2px; font-family: 'Arial', sans-serif;}
+
+        /* 语音朗读按钮样式 */
+        .speak-btn { cursor: pointer; font-size: 14px; margin-left: 6px; transition: transform 0.2s; display: inline-block; filter: grayscale(20%); }
+        .speak-btn:hover { transform: scale(1.25); filter: grayscale(0%); }
+
+        /* 快捷语音设置面板样式 */
+        .voice-controls { display: flex; align-items: center; justify-content: center; gap: 10px; background: white; padding: 10px 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex-wrap: wrap;}
+        .voice-select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; outline: none; font-size: 14px; max-width: 250px; background: #fafafa; font-family: inherit; box-sizing: border-box;}
+        .voice-select:focus { border-color: var(--secondary); }
+        .rate-slider { width: 100px; cursor: pointer;}
 
         .grid-container { position: relative; width: 240px; height: 240px; border: 2px solid #333; background: white; overflow: hidden; border-radius: 8px;}
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
@@ -107,7 +123,7 @@
         .row-label { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
         .row-label i { font-style: normal; background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 12px;}
 
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px);}
         .modal { background: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal h3 { margin-top: 0; color: #333; }
         .modal p { color: #666; font-size: 14px; margin-bottom: 20px; }
@@ -128,12 +144,17 @@
 </head>
 <body>
 
-<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.6 词库增强版)</div>
+<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.10 语音配音全能版)</div>
 
 <div class="no-print">
-    <input type="text" id="charInput" value="你好">
+    <!-- STT: 语音听写录入输入框 -->
+    <div class="input-wrapper">
+        <input type="text" id="charInput" value="你好" placeholder="输入汉字/词组...">
+        <button class="mic-btn" id="micBtn" onclick="startDictation()" title="点击开始语音识别录入 (Speech to Text)">🎤</button>
+    </div>
+
     <button class="btn-gen" onclick="initAll()">生成并演示<br><span>Generate & Play</span></button>
-    <a href="https://www.hanzipi.com" target="_blank" class="btn-link btn-hanzipi">参考汉字皮<br><span>HanziPi.com</span></a>
+    <button class="btn-tts-studio" onclick="openTtsStudio()">🎧 语音配音工作室<br><span>TTS Studio Pro</span></button>
     
     <div style="width: 2px; height: 40px; background: #eee; margin: 0 5px;"></div>
     
@@ -144,6 +165,60 @@
     <button class="btn-dl-worksheet" onclick="downloadWorksheet()">📥 下载双行字帖<span>Download Sheet</span></button>
     <button class="btn-sentence" onclick="downloadSentenceWorksheet()">📝 导出句子练习纸<span>Sentence Practice</span></button>
     <button class="btn-anim-dl" onclick="showAnimDownloadModal()">🎬 下载循环动画 (慢速版)<span>Export Animation</span></button>
+</div>
+
+<!-- 快捷语音设置控制台 (用于卡片快捷点读) -->
+<div class="voice-controls no-print">
+    <span style="font-size: 14px; color: #555; font-weight: bold;">🗣️ 快捷点读发音人:</span>
+    <select id="voiceSelect" class="voice-select">
+        <option value="">正在加载语音列表...</option>
+    </select>
+    
+    <span style="font-size: 14px; color: #555; margin-left: 10px; font-weight: bold;">⏱️ 教学语速:</span>
+    <input type="range" id="rateSelect" class="rate-slider" min="0.5" max="1.5" step="0.1" value="0.8">
+    <span id="rateValue" style="font-size: 14px; color: #E67E22; font-weight: bold; min-width: 30px;">0.8</span>
+</div>
+
+<!-- TTS: 高级语音合成配音工作室 Modal -->
+<div class="modal-overlay" id="ttsStudioModal">
+    <div class="modal" style="max-width: 650px; width: 95%; text-align: left;">
+        <h3 style="text-align: center; margin-bottom: 5px;">🎧 语音配音工作室 (TTS Studio)</h3>
+        <p style="font-size: 13px; color: #666; text-align: center; margin-bottom: 15px;">纯前端实现文本转语音。Edge 浏览器支持微软 <b>⭐Natural</b> 神经网络配音模型。</p>
+        
+        <textarea id="ttsStudioText" rows="6" style="width: 100%; box-sizing: border-box; padding: 15px; border-radius: 12px; border: 2px solid #e0e0e0; font-size: 16px; margin-bottom: 15px; font-family: inherit; resize: vertical; outline: none; transition: 0.3s;" placeholder="请输入要进行配音的中文文本... (支持任意长文本)"></textarea>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 12px;">
+            <div style="grid-column: span 2;">
+                <label style="font-size:13px; font-weight:bold; display:block; margin-bottom:5px; color:#333;">🗣️ 选择配音员 (Voice Actor):</label>
+                <select id="studioVoiceSelect" class="voice-select" style="width: 100%; max-width:100%; border:1px solid #ccc;"></select>
+            </div>
+            <div>
+                <label style="font-size:13px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; color:#333;">
+                    <span>🔊 音量 (Volume):</span> <span id="valVol" style="color:#FF8C42">1.0</span>
+                </label>
+                <input type="range" id="studioVol" min="0" max="1" step="0.1" value="1" style="width: 100%;">
+            </div>
+            <div>
+                <label style="font-size:13px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; color:#333;">
+                    <span>⏱️ 语速 (Rate):</span> <span id="valRate" style="color:#FF8C42">1.0</span>
+                </label>
+                <input type="range" id="studioRate" min="0.1" max="2" step="0.1" value="1.0" style="width: 100%;">
+            </div>
+            <div style="grid-column: span 2;">
+                <label style="font-size:13px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; color:#333;">
+                    <span>🎵 音调 (Pitch):</span> <span id="valPitch" style="color:#FF8C42">1.0</span>
+                </label>
+                <input type="range" id="studioPitch" min="0" max="2" step="0.1" value="1.0" style="width: 100%;">
+            </div>
+        </div>
+
+        <div class="modal-btns" style="flex-direction: row; justify-content: space-between; gap:10px;">
+            <button style="background:#3498db; flex: 1.5; font-size:16px;" onclick="previewTtsStudio()">▶️ 试听配音</button>
+            <button style="background:#e74c3c; flex: 1; font-size:16px;" onclick="window.speechSynthesis.cancel()">⏹️ 停止</button>
+            <button style="background:#27ae60; flex: 1.5; font-size:16px;" onclick="downloadTtsStudio()" title="调用第三方接口生成MP3下载">💾 下载 MP3</button>
+        </div>
+        <button style="background:#eee; color:#666; width: 100%; margin-top: 15px;" onclick="closeTtsStudio()">关闭 (Close)</button>
+    </div>
 </div>
 
 <div class="modal-overlay" id="downloadModal">
@@ -267,7 +342,6 @@
         '车': { en: 'vehicle / car', ar: 'سيارة / مركبة', words: [{w:'汽车',py:'qì chē',en:'car / automobile',ar:'سيارة',ex:'他有一辆汽车。',exEn:'He has a car.',exAr:'لديه سيارة.'},{w:'公共汽车',py:'gōng gòng qì chē',en:'bus',ar:'حافلة',ex:'我坐公共汽车上班。',exEn:'I take the bus to work.',exAr:'أذهب لل工作 بالحافلة.'},{w:'自行车',py:'zì xíng chē',en:'bicycle',ar:'دراجة هوائية',ex:'骑自行车很环保。',exEn:'Riding a bicycle is very eco-friendly.',exAr:'ركوب الدراجة الهوائية صديق للبيئة.'}] },
     };
 
-    // FIX START: 增加 HSK 字表数据（简易版映射），用于获取汉字对应的 HSK 级别
     const HSK_DICT = {
         '你': 1, '好': 1, '我': 1, '是': 1, '中': 1, '人': 1, '大': 1, '小': 1, '上': 1, '下': 1,
         '来': 1, '去': 1, '学': 1, '说': 1, '吃': 1, '喝': 1, '爱': 1, '水': 1, '火': 1, '日': 1,
@@ -278,10 +352,247 @@
     function getHSKLevel(char) {
         return HSK_DICT[char] ? `HSK ${HSK_DICT[char]}` : '';
     }
-    // FIX END
 
     // ========================================================
-    // 翻译功能
+    // 语音识别功能 (STT - Speech to Text) - 语音听写录入
+    // ========================================================
+    function startDictation() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("抱歉，您的浏览器不支持语音识别录入功能。强烈建议使用 Google Chrome 或 Microsoft Edge 浏览器。");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        const btn = document.getElementById('micBtn');
+        
+        // 动画效果
+        btn.classList.add('recording');
+        btn.textContent = '🔴';
+        document.getElementById('charInput').placeholder = "正在聆听...";
+
+        recognition.start();
+
+        recognition.onresult = (event) => {
+            // 获取结果并去除常见标点符号
+            let speechResult = event.results[0][0].transcript;
+            speechResult = speechResult.replace(/[。，？！、]/g, '');
+            document.getElementById('charInput').value = speechResult;
+            
+            // 自动触发生成
+            initAll();
+        };
+
+        recognition.onspeechend = () => {
+            recognition.stop();
+            resetMicBtn();
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            resetMicBtn();
+            if(event.error !== 'no-speech') {
+                alert("语音识别出现错误：" + event.error);
+            }
+        };
+
+        function resetMicBtn() {
+            btn.classList.remove('recording');
+            btn.textContent = '🎤';
+            document.getElementById('charInput').placeholder = "输入汉字/词组...";
+        }
+    }
+
+
+    // ========================================================
+    // 语音朗读功能 (TTS - Text to Speech)
+    // ========================================================
+    let availableVoices = [];
+
+    function populateVoiceList() {
+        if (typeof speechSynthesis === 'undefined') return;
+        
+        const voices = speechSynthesis.getVoices();
+        
+        let maleVoice = null;
+        let femaleVoice = null;
+        
+        // 遍历系统语音库，智能匹配最佳的男女声
+        for (let voice of voices) {
+            const name = voice.name.toLowerCase();
+            const lang = voice.lang.toLowerCase();
+            
+            // 排除非中文和港台口音
+            if (!lang.startsWith('zh') || lang.includes('tw') || lang.includes('hk') || name.includes('taiwan')) {
+                continue;
+            }
+            
+            // 匹配男声 (优先找 limu，如果没有则向下兼容找 yunxi/kangkang 等系统自带男声)
+            if (!maleVoice && (name.includes('limu') || name.includes('li-mu') || name.includes('yunxi') || name.includes('kangkang'))) {
+                maleVoice = voice;
+            }
+            
+            // 匹配女声 (优先找 google普通话，如果没有则向下兼容找 xiaoxiao/huihui/yaoyao)
+            if (!femaleVoice && ((name.includes('google') && (lang.includes('cn') || name.includes('普通话') || name.includes('mandarin'))) || name.includes('xiaoxiao') || name.includes('huihui') || name.includes('yaoyao'))) {
+                femaleVoice = voice;
+            }
+        }
+        
+        // 组装最终供显示的列表
+        availableVoices = [];
+        if (femaleVoice) {
+            femaleVoice.customDisplayName = '👩 女声';
+            availableVoices.push(femaleVoice);
+        }
+        if (maleVoice) {
+            maleVoice.customDisplayName = '👨 男声';
+            availableVoices.push(maleVoice);
+        }
+        
+        const voiceSelect = document.getElementById('voiceSelect');
+        const studioVoiceSelect = document.getElementById('studioVoiceSelect');
+        
+        if (!voiceSelect || !studioVoiceSelect) return;
+        voiceSelect.innerHTML = '';
+        studioVoiceSelect.innerHTML = '';
+        
+        if (availableVoices.length === 0) {
+            const option = document.createElement('option');
+            option.textContent = '未检测到中文男/女声，建议使用 Edge 浏览器';
+            voiceSelect.appendChild(option);
+            studioVoiceSelect.appendChild(option.cloneNode(true));
+            return;
+        }
+
+        // 渲染下拉菜单
+        availableVoices.forEach((voice, index) => {
+            const option1 = document.createElement('option');
+            const option2 = document.createElement('option');
+            
+            option1.textContent = option2.textContent = voice.customDisplayName;
+            option1.value = option2.value = index;
+            
+            voiceSelect.appendChild(option1);
+            studioVoiceSelect.appendChild(option2);
+        });
+    }
+
+    if (typeof speechSynthesis !== 'undefined') {
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+        setTimeout(populateVoiceList, 500);
+    }
+
+    // 快捷发音控制参数同步
+    document.getElementById('rateSelect').addEventListener('input', function(e) {
+        document.getElementById('rateValue').textContent = e.target.value;
+    });
+
+    // 快捷朗读功能
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (availableVoices.length > 0 && voiceSelect && voiceSelect.value !== '') {
+                utterance.voice = availableVoices[voiceSelect.value];
+            }
+            
+            const rateSelect = document.getElementById('rateSelect');
+            utterance.rate = rateSelect ? parseFloat(rateSelect.value) : 0.8;
+            
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    // ========================================================
+    // 语音配音工作室 (TTS Studio Pro) 逻辑
+    // ========================================================
+    
+    // 绑定滑块更新值显示
+    ['Vol', 'Rate', 'Pitch'].forEach(param => {
+        document.getElementById(`studio${param}`).addEventListener('input', function(e) {
+            document.getElementById(`val${param}`).textContent = parseFloat(e.target.value).toFixed(1);
+        });
+    });
+
+    function openTtsStudio() {
+        // 自动提取当前生成的生词和例句填入文本框
+        let extractedText = '';
+        const inputChars = document.getElementById('charInput').value;
+        if(inputChars) extractedText += "今天我们学习的字是：" + inputChars + "。\n\n";
+
+        document.querySelectorAll('.word-item').forEach(item => {
+            const word = item.querySelector('.word-item-hanzi').textContent;
+            const sentence = item.querySelector('.word-item-ex').textContent.replace('📝 ', '');
+            extractedText += `${word}。 ${sentence}\n`;
+        });
+
+        document.getElementById('ttsStudioText').value = extractedText;
+        document.getElementById('ttsStudioModal').style.display = 'flex';
+    }
+
+    function closeTtsStudio() {
+        window.speechSynthesis.cancel();
+        document.getElementById('ttsStudioModal').style.display = 'none';
+    }
+
+    function previewTtsStudio() {
+        const text = document.getElementById('ttsStudioText').value.trim();
+        if(!text) return alert("请输入要配音的文本！");
+        
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            
+            const vIdx = document.getElementById('studioVoiceSelect').value;
+            if (availableVoices.length > 0 && vIdx !== '') {
+                utterance.voice = availableVoices[vIdx];
+            }
+            
+            utterance.volume = parseFloat(document.getElementById('studioVol').value);
+            utterance.rate = parseFloat(document.getElementById('studioRate').value);
+            utterance.pitch = parseFloat(document.getElementById('studioPitch').value);
+            
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("您的浏览器不支持语音合成API！");
+        }
+    }
+
+    function downloadTtsStudio() {
+        const text = document.getElementById('ttsStudioText').value.trim();
+        if(!text) {
+            alert('请先输入要转换的文本！');
+            return;
+        }
+        if(text.length > 200) {
+            alert('注意：由于第三方免费接口限制，超过200字的超长文本可能会被截断。建议分段下载。');
+        }
+        
+        window.speechSynthesis.cancel();
+        // 使用有道词典免费接口生成标准女声MP3
+        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.download = 'tts_audio.mp3'; // 强行触发下载属性（受跨域影响可能变为新标签页打开）
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+
+    // ========================================================
+    // 翻译与核心加载逻辑
     // ========================================================
     async function getTranslation(text) {
         if (text.length === 1 && CHAR_DICT[text]) return CHAR_DICT[text].en;
@@ -340,13 +651,11 @@
                 const pinyin = pinyinPro.pinyin(char);
                 const targetId = `target_${groupIdx}_${charIdx}`;
                 
-                // FIX START: 获取当前字的 HSK 等级，并构建对应标签 HTML
                 const hskStr = getHSKLevel(char);
                 const hskHtml = hskStr ? `<div class="hsk-badge">${hskStr}</div>` : '';
-                // FIX END
 
                 card.innerHTML = `
-                    ${hskHtml} <!-- FIX START / FIX END -->
+                    ${hskHtml}
                     <div class="pinyin-display">${pinyin}</div>
                     <div class="meaning-display" id="meaning_${groupIdx}_${charIdx}">...</div>
                     <div class="meaning-ar" id="meaning_ar_${groupIdx}_${charIdx}">...</div>
@@ -589,7 +898,6 @@
         });
     }
 
-    // 修改此函数以包含英语和阿拉伯语翻译
     function buildCharWordsPanel(char, charIdx) {
         const root = document.getElementById(`words_container_${charIdx}`);
         if (!root) return;
@@ -602,12 +910,14 @@
             group.innerHTML += `<div style="color:#aaa; font-size:11px;">暂无词条 / No entries</div>`;
         } else {
             words.forEach(w => {
+                const exPy = pinyinPro.pinyin(w.ex);
                 const item = document.createElement('div');
                 item.className = 'word-item';
                 item.innerHTML = `
                     <div class="word-item-header">
                         <span class="word-item-hanzi">${w.w}</span>
                         <span class="word-item-py">${w.py}</span>
+                        <span class="speak-btn" onclick="speakText('${w.w}')" title="朗读词语">🔊</span>
                     </div>
                     <!-- 组词翻译部分 -->
                     <div class="word-item-trans-box">
@@ -615,7 +925,8 @@
                         <div class="word-item-ar" dir="rtl">🇸🇦 ${w.ar}</div>
                     </div>
                     <!-- 例句翻译部分 -->
-                    <div class="word-item-ex">📝 ${w.ex}</div>
+                    <div class="word-item-ex-py">🗣️ ${exPy}</div>
+                    <div class="word-item-ex">📝 ${w.ex} <span class="speak-btn" onclick="speakText('${w.ex}')" title="朗读例句">🔊</span></div>
                     <div class="word-item-ex-en">🇬🇧 ${w.exEn}</div>
                     <div class="word-item-ex-ar" dir="rtl">🇸🇦 ${w.exAr}</div>
                 `;
