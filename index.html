@@ -2,11 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.1</title>
+    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.4</title>
     <!-- 引入 Hanzi Writer -->
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <!-- 引入 pinyin-pro 用于获取拼音 -->
     <script src="https://unpkg.com/pinyin-pro"></script>
+    <!-- gif.js：Canvas 逐帧 GIF 编码，Worker 多线程，无需 wasm -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         :root { --primary: #FF8C42; --secondary: #3F8EFC; --bg: #f4f7f9; }
         body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 30px; margin: 0; }
@@ -15,7 +17,6 @@
         
         /* 顶部控制栏 */
         .no-print { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; justify-content: center; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        /* 修改：输入框宽度增加以支持词语 */
         input { padding: 12px; width: 260px; border-radius: 12px; border: 2px solid #ddd; text-align: center; font-size: 22px; outline: none; transition: border-color 0.3s;}
         input:focus { border-color: var(--secondary); }
         
@@ -31,31 +32,44 @@
         .btn-dl-strokes { background: #9b59b6; }
         .btn-dl-comp { background: #e74c3c; } 
         .btn-dl-worksheet { background: #2c3e50; }
-        
-        /* 【新增代码位置】句子导出的按钮样式 */
         .btn-sentence { background: #16a085; }
+        .btn-anim-dl { background: #6c3483; }
+
+        .anim-modal-progress { width: 100%; height: 10px; background: #eee; border-radius: 8px; overflow: hidden; margin: 10px 0 6px; }
+        .anim-modal-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #6c3483, #a569bd); border-radius: 8px; transition: width 0.2s; }
+        .anim-modal-status { font-size: 13px; color: #888; margin-bottom: 10px; min-height: 18px; }
 
         button span, .btn-link span { display: block; font-size: 11px; font-weight: normal; opacity: 0.9; margin-top: 2px;}
         button:hover, .btn-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2);}
         
-        /* 预览卡片区 */
         .canvas-area { display: flex; flex-direction: column; gap: 30px; justify-content: center; width: 100%; max-width: 1200px;}
-        /* 新增：词语展示容器 */
         .word-row-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
         
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; min-width: 280px; position: relative;}
         
-        /* 页面拼音/翻译显示样式 */
         .pinyin-display { font-size: 24px; font-weight: bold; color: #FF8C42; margin-bottom: 2px; min-height: 30px; }
-        .meaning-display { font-size: 14px; color: #666; margin-bottom: 10px; font-style: italic; min-height: 20px; }
+        .meaning-display { font-size: 13px; color: #666; margin-bottom: 2px; font-style: italic; min-height: 18px; }
+        .meaning-ar { font-size: 13px; color: #8E44AD; margin-bottom: 8px; font-style: italic; min-height: 18px; direction: rtl; font-family: 'Arial', sans-serif; }
+        
+        /* 组词例句面板 */
+        .words-panel { width: 100%; max-width: 1100px; background: white; padding: 20px; border-radius: 24px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .words-char-group { margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .words-char-group:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        .words-char-title { font-size: 16px; font-weight: bold; color: #3F8EFC; margin-bottom: 10px; }
+        .word-item { background: #f8f9fa; border-radius: 14px; padding: 12px 16px; margin-bottom: 8px; }
+        .word-item-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+        .word-item-hanzi { font-size: 20px; font-weight: bold; color: #E74C3C; }
+        .word-item-py { font-size: 14px; color: #FF8C42; font-weight: bold; }
+        .word-item-en { font-size: 13px; color: #555; }
+        .word-item-ar { font-size: 13px; color: #8E44AD; direction: rtl; }
+        .word-item-ex { font-size: 13px; color: #333; margin-top: 4px; }
+        .word-item-ex-en { font-size: 12px; color: #777; font-style: italic; }
+        .word-item-ex-ar { font-size: 12px; color: #9B59B6; font-style: italic; direction: rtl; }
 
         .grid-container { position: relative; width: 240px; height: 240px; border: 2px solid #333; background: white; overflow: hidden; border-radius: 8px;}
         svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .label { text-align: center; margin-top: 15px; font-weight: bold; color: #555; font-size: 14px; }
-
         .stroke-number { font-family: Arial; font-size: 80px; font-weight: 900; fill: #000; paint-order: stroke; stroke: #fff; stroke-width: 14px; }
 
-        /* 部件显示区 */
         .components-panel { width: 100%; max-width: 1100px; background: white; padding: 20px; border-radius: 24px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .comp-group { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .comp-group:last-child { border-bottom: none; }
@@ -63,11 +77,9 @@
         .comp-display { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;}
         .comp-item { width: 150px; height: 150px; border: 2px dashed #ddd; border-radius: 12px; position: relative; background: #fafafa; flex-shrink: 0;}
 
-        /* 字帖区 */
         .worksheet-panel { width: 100%; max-width: 1100px; background: white; padding: 30px; border-radius: 24px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .worksheet-row-wrapper { overflow-x: auto; margin-top: 15px; padding-bottom: 10px; }
         .worksheet-row { display: flex; flex-wrap: nowrap; gap: 2px; background: #333; padding: 2px; width: fit-content; margin-bottom: 5px; }
-        /* 【新增代码位置】句子书写格子的样式封装 */
         .sentence-cell-box { display: flex; flex-direction: column; align-items: center; background: white; flex-shrink: 0; }
         .sentence-pinyin { height: 25px; font-size: 12px; color: #FF8C42; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .worksheet-cell { width: 85px; height: 85px; position: relative; background: white; flex-shrink: 0; }
@@ -75,7 +87,6 @@
         .row-label { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
         .row-label i { font-style: normal; background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 12px;}
 
-        /* 弹窗样式 */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: white; padding: 25px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal h3 { margin-top: 0; color: #333; }
@@ -83,7 +94,6 @@
         .modal-btns { display: flex; flex-direction: column; gap: 10px; }
         .modal-btns button { width: 100%; padding: 12px; }
 
-        /* 笔顺模式切换 */
         .stroke-mode-toggle { display: flex; align-items: center; gap: 8px; background: #f0f0f0; border-radius: 14px; padding: 4px; }
         .stroke-mode-btn { padding: 8px 14px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; background: transparent; color: #888; transition: all 0.25s; box-shadow: none; }
         .stroke-mode-btn.active { background: white; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
@@ -98,10 +108,9 @@
 </head>
 <body>
 
-<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.1)</div>
+<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.4 提速优化版)</div>
 
 <div class="no-print">
-    <!-- 修改：不再限制字数长度 -->
     <input type="text" id="charInput" value="你好">
     <button class="btn-gen" onclick="initAll()">生成并演示<br><span>Generate & Play</span></button>
     <a href="https://www.hanzipi.com" target="_blank" class="btn-link btn-hanzipi">参考汉字皮<br><span>HanziPi.com</span></a>
@@ -113,8 +122,8 @@
     <button class="btn-dl-strokes" onclick="downloadAllStrokes()">🌈 下载彩色笔画<span>Transparent PNG</span></button>
     <button class="btn-dl-comp" onclick="downloadComponents()">🧩 下载汉字部件<span>Transparent PNG</span></button>
     <button class="btn-dl-worksheet" onclick="downloadWorksheet()">📥 下载双行字帖<span>Download Sheet</span></button>
-    <!-- 【新增代码位置】句子导出的按钮 -->
     <button class="btn-sentence" onclick="downloadSentenceWorksheet()">📝 导出句子练习纸<span>Sentence Practice</span></button>
+    <button class="btn-anim-dl" onclick="showAnimDownloadModal()">🎬 下载循环动画 (慢速版)<span>Export Animation</span></button>
 </div>
 
 <div class="modal-overlay" id="downloadModal">
@@ -131,13 +140,46 @@
     </div>
 </div>
 
-<div class="canvas-area" id="canvasArea">
-    <!-- 动态生成多字展示区域 -->
+<div class="modal-overlay" id="animDownloadModal">
+    <div class="modal" style="max-width:460px;">
+        <h3>🎬 下载循环动画 / Export Animation</h3>
+        <p style="margin-bottom:12px;">已设为<b>教学慢速版 (0.8秒/笔)</b>，节奏平衡。<br><small>点击开始录制后将自动下载 GIF。</small></p>
+        <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; justify-content:center;">
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:6px; font-size:13px; color:#555;">
+                <label><b>循环次数：</b></label>
+                <div style="display:flex; gap:6px;">
+                    <button class="stroke-mode-btn active" id="animLoop1" onclick="setAnimLoopCount(1)" style="color:#333;">1次</button>
+                    <button class="stroke-mode-btn" id="animLoop2" onclick="setAnimLoopCount(2)" style="color:#333;">2次</button>
+                    <button class="stroke-mode-btn" id="animLoop3" onclick="setAnimLoopCount(3)" style="color:#333;">3次</button>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:6px; font-size:13px; color:#555;">
+                <label><b>布局方式：</b></label>
+                <div style="display:flex; gap:6px;">
+                    <button class="stroke-mode-btn active" id="animLayoutRow" onclick="setAnimLayout('row')" style="color:#333;">横排</button>
+                    <button class="stroke-mode-btn" id="animLayoutCol" onclick="setAnimLayout('col')" style="color:#333;">竖排</button>
+                </div>
+            </div>
+        </div>
+        <div class="anim-modal-progress"><div class="anim-modal-progress-bar" id="animProgressBar"></div></div>
+        <div class="anim-modal-status" id="animStatusText">准备就绪，点击开始录制。</div>
+        <div class="modal-btns">
+            <button class="btn-anim-dl" id="animStartBtn" onclick="startAnimRecording()">▶ 开始录制并下载</button>
+            <button style="background:#eee; color:#666;" id="animCancelBtn" onclick="closeAnimModal()">取消 (Cancel)</button>
+        </div>
+    </div>
 </div>
+
+<div class="canvas-area" id="canvasArea"></div>
 
 <div class="components-panel">
     <div class="row-label">🧩 汉字部件拆解 (Radical / Components)</div>
     <div id="compDisplayRoot"></div>
+</div>
+
+<div class="words-panel" id="wordsPanelRoot">
+    <div class="row-label">📚 常用组词与例句 (Common Words & Example Sentences)</div>
+    <div id="wordsDisplayRoot"><span style="color:#aaa; font-size:14px;">生成汉字后显示… / Generates after loading characters…</span></div>
 </div>
 
 <div class="worksheet-panel" id="worksheetArea">
@@ -148,10 +190,7 @@
             <button class="stroke-mode-btn" id="btnModeComponent" onclick="setStrokeMode('component')">🧩 部件着色</button>
         </div>
     </div>
-    <!-- 动态生成练习行 -->
     <div id="worksheetRowsRoot"></div>
-    
-    <!-- 【新增代码位置】专门展示句子字帖预览的容器 -->
     <div id="sentenceWorksheetRoot" style="margin-top: 30px;"></div>
 </div>
 
@@ -160,8 +199,8 @@
 
 <script>
     const apiKey = ""; 
-    let writers = []; // 修改：支持多字动画实例
-    let charDataArray = []; // 修改：存储整个词组的数据
+    let writers = []; 
+    let charDataArray = []; 
     let currentMeaning = "";
     let isLooping = false;
     let currentDownloadType = ''; 
@@ -172,57 +211,104 @@
     let currentStrokeMode = 'rainbow'; 
     let currentAnimMode = 'rainbow';   
 
-    // 修改：支持翻译词组
+    // ========================================================
+    // 内置汉字词库（无需 API Key）
+    // ========================================================
+    const CHAR_DICT = {
+        '你': { en: 'you', ar: 'أنت', words: [{w:'你好',py:'nǐ hǎo',en:'Hello / Hi',ar:'مرحبا',ex:'你好，我是李明。',exEn:'Hello, I am Li Ming.',exAr:'مرحبا، أنا لي مينغ.'},{w:'你们',py:'nǐ men',en:'you (plural)',ar:'أنتم',ex:'你们都来了吗？',exEn:'Have you all come?',exAr:'هل أتيتم جميعاً؟'},{w:'你好吗',py:'nǐ hǎo ma',en:'How are you?',ar:'كيف حالك؟',ex:'你好吗？我很好。',exEn:'How are you? I\'m fine.',exAr:'كيف حالك؟ أنا بخير.'}] },
+        '好': { en: 'good', ar: 'جيد', words: [{w:'好吃',py:'hǎo chī',en:'delicious',ar:'لذيذ',ex:'这个菜很好吃。',exEn:'This dish is delicious.',exAr:'هذا الطبق لذيذ.'},{w:'好看',py:'hǎo kàn',en:'good-looking',ar:'جميل',ex:'她穿的衣服很好看。',exEn:'The clothes she wears look great.',exAr:'ملابسها تبدو جميلة.'},{w:'好学',py:'hào xué',en:'studious',ar:'محب للتعلم',ex:'他是一个好学的学生。',exEn:'He is a studious student.',exAr:'هو طالب محب للتعلم.'}] },
+        '我': { en: 'I / me', ar: 'أنا', words: [{w:'我们',py:'wǒ men',en:'we / us',ar:'نحن',ex:'我们是朋友。',exEn:'We are friends.',exAr:'نحن أصدقاء.'},{w:'我的',py:'wǒ de',en:'my / mine',ar:'ملكي',ex:'这是我的书。',exEn:'This is my book.',exAr:'هذا كتابي.'},{w:'自我',py:'zì wǒ',en:'self',ar:'الذات',ex:'自我介绍一下。',exEn:'Let me introduce myself.',exAr:'دعني أعرف بنفسي.'}] },
+        '是': { en: 'to be / is', ar: 'يكون / هو', words: [{w:'是否',py:'shì fǒu',en:'whether or not',ar:'ما إذا',ex:'你是否喜欢中文？',exEn:'Do you like Chinese?',exAr:'هل تحب اللغة الصينية؟'},{w:'还是',py:'hái shi',en:'or / still',ar:'أو / لا يزال',ex:'你喝茶还是咖啡？',exEn:'Do you drink tea or coffee?',exAr:'هل تشرب الشاي أم القهوة؟'},{w:'就是',py:'jiù shì',en:'exactly / just',ar:'بالضبط',ex:'这就是我要的答案。',exEn:'This is exactly the answer I want.',exAr:'هذه بالضبط الإجابة التي أريدها.'}] },
+        '中': { en: 'middle / China', ar: 'وسط / الصين', words: [{w:'中文',py:'zhōng wén',en:'Chinese language',ar:'اللغة الصينية',ex:'我在学中文。',exEn:'I am learning Chinese.',exAr:'أنا أتعلم اللغة الصينية.'},{w:'中间',py:'zhōng jiān',en:'middle / between',ar:'في الوسط / بين',ex:'他站在中间。',exEn:'He stands in the middle.',exAr:'هو يقف في الوسط.'},{w:'中国',py:'zhōng guó',en:'China',ar:'الصين',ex:'中国有很多城市。',exEn:'China has many cities.',exAr:'الصين لديها مدن كثيرة.'}] },
+        '人': { en: 'person', ar: 'شخص', words: [{w:'中国人',py:'zhōng guó rén',en:'Chinese person',ar:'صيني',ex:'他是中国人。',exEn:'He is Chinese.',exAr:'هو صيني.'},{w:'大人',py:'dà rén',en:'adult',ar:'بالغ',ex:'这里只有大人能进。',exEn:'Only adults can enter here.',exAr:'البالغون فقط يمكنهم الدخول هنا.'},{w:'人们',py:'rén men',en:'people',ar:'الناس',ex:'人们都很友好。',exEn:'People are very friendly.',exAr:'الناس ودودون جداً.'}] },
+        '大': { en: 'big / large', ar: 'كبير', words: [{w:'大学',py:'dà xué',en:'university',ar:'جامعة',ex:'我在大学学习。',exEn:'I study at university.',exAr:'أدرس في الجامعة.'},{w:'大家',py:'dà jiā',en:'everyone',ar:'الجميع',ex:'大家好！',exEn:'Hello everyone!',exAr:'مرحباً بالجميع!'},{w:'大小',py:'dà xiǎo',en:'size',ar:'الحجم',ex:'这双鞋大小合适。',exEn:'These shoes are the right size.',exAr:'حجم هذه الأحذية مناسب.'}] },
+        '小': { en: 'small / little', ar: 'صغير', words: [{w:'小心',py:'xiǎo xīn',en:'be careful',ar:'كن حذراً',ex:'过马路要小心。',exEn:'Be careful when crossing the road.',exAr:'كن حذراً عند عبور الطريق.'},{w:'小时',py:'xiǎo shí',en:'hour',ar:'ساعة',ex:'我学了两个小时。',exEn:'I studied for two hours.',exAr:'درست لمدة ساعتين.'},{w:'小吃',py:'xiǎo chī',en:'snack / street food',ar:'وجبة خفيفة',ex:'北京的小吃很有名。',exEn:'Beijing snacks are very famous.',exAr:'الأكل الشعبي في بكين مشهور جداً.'}] },
+        '上': { en: 'up / above', ar: 'فوق', words: [{w:'上课',py:'shàng kè',en:'attend class',ar:'حضور الدرس',ex:'我们每天上课。',exEn:'We attend class every day.',exAr:'نحضر الدرس كل يوم.'},{w:'上面',py:'shàng miàn',en:'above / on top',ar:'فوق / أعلى',ex:'书在桌子上面。',exEn:'The book is on the table.',exAr:'الكتاب على الطاولة.'},{w:'早上',py:'zǎo shang',en:'morning',ar:'الصباح',ex:'早上好！',exEn:'Good morning!',exAr:'صباح الخير!'}] },
+        '下': { en: 'down / below', ar: 'تحت', words: [{w:'下课',py:'xià kè',en:'class is over',ar:'انتهاء الدرس',ex:'下课后我去吃饭。',exEn:'After class I go to eat.',exAr:'بعد الدرس أذهب للأكل.'},{w:'下面',py:'xià miàn',en:'below / underneath',ar:'تحت',ex:'猫在椅子下面。',exEn:'The cat is under the chair.',exAr:'القطة تحت الكرسي.'},{w:'地下',py:'dì xià',en:'underground',ar:'تحت الأرض',ex:'地下停车场在这里。',exEn:'The underground parking is here.',exAr:'موقف السيارات تحت الأرض هنا.'}] },
+        '来': { en: 'come', ar: 'يأتي', words: [{w:'来自',py:'lái zì',en:'come from',ar:'قادم من',ex:'他来自北京。',exEn:'He comes from Beijing.',exAr:'هو قادم من بكين.'},{w:'回来',py:'huí lái',en:'come back',ar:'يعود',ex:'他明天回来。',exEn:'He will come back tomorrow.',exAr:'سيعود غداً.'},{w:'进来',py:'jìn lái',en:'come in',ar:'تفضل / ادخل',ex:'请进来坐。',exEn:'Please come in and sit.',exAr:'تفضل اجلس.'}] },
+        '去': { en: 'go', ar: 'يذهب', words: [{w:'出去',py:'chū qù',en:'go out',ar:'يخرج',ex:'我们出去玩吧。',exEn:'Let\'s go out and play.',exAr:'لنخرج ونلعب.'},{w:'回去',py:'huí qù',en:'go back',ar:'يعود / يرجع',ex:'我要回去了。',exEn:'I need to go back.',exAr:'يجب أن أرجع.'},{w:'去年',py:'qù nián',en:'last year',ar:'العام الماضي',ex:'去年我去了上海。',exEn:'Last year I went to Shanghai.',exAr:'العام الماضي ذهبت إلى شنغهاي.'}] },
+        '学': { en: 'study / learn', ar: 'يتعلم / يدرس', words: [{w:'学生',py:'xué sheng',en:'student',ar:'طالب',ex:'她是一名好学生。',exEn:'She is a good student.',exAr:'هي طالبة جيدة.'},{w:'学习',py:'xué xí',en:'study / learn',ar:'الدراسة / التعلم',ex:'我喜欢学习中文。',exEn:'I like studying Chinese.',exAr:'أحب دراسة اللغة الصينية.'},{w:'大学',py:'dà xué',en:'university',ar:'جامعة',ex:'他在大学教书。',exEn:'He teaches at university.',exAr:'يدرّس في الجامعة.'}] },
+        '说': { en: 'speak / say', ar: 'يتكلم / يقول', words: [{w:'说话',py:'shuō huà',en:'speak / talk',ar:'يتحدث',ex:'请慢慢说话。',exEn:'Please speak slowly.',exAr:'تحدث ببطء من فضلك.'},{w:'听说',py:'tīng shuō',en:'heard that',ar:'سمعت أن',ex:'听说你要去中国。',exEn:'I heard you\'re going to China.',exAr:'سمعت أنك ستذهب إلى الصين.'},{w:'说明',py:'shuō míng',en:'explanation',ar:'شرح / توضيح',ex:'请给我说明一下。',exEn:'Please give me an explanation.',exAr:'من فضلك وضح لي.'}] },
+        '吃': { en: 'eat', ar: 'يأكل', words: [{w:'吃饭',py:'chī fàn',en:'eat a meal',ar:'يأكل الطعام',ex:'我们一起去吃饭吧。',exEn:'Let\'s go eat together.',exAr:'لنذهب لنأكل معاً.'},{w:'好吃',py:'hǎo chī',en:'delicious',ar:'لذيذ',ex:'这个包子很好吃。',exEn:'This bun is very delicious.',exAr:'هذه الشاومي لذيذة جداً.'},{w:'吃苦',py:'chī kǔ',en:'endure hardship',ar:'يصبر على المشقة',ex:'他不怕吃苦。',exEn:'He is not afraid of hardship.',exAr:'هو لا يخاف من المشقة.'}] },
+        '喝': { en: 'drink', ar: 'يشرب', words: [{w:'喝水',py:'hē shuǐ',en:'drink water',ar:'يشرب الماء',ex:'多喝水对身体好。',exEn:'Drinking more water is good for health.',exAr:'شرب الماء الكثير مفيد للصحة.'},{w:'喝茶',py:'hē chá',en:'drink tea',ar:'يشرب الشاي',ex:'我喜欢喝茶。',exEn:'I like drinking tea.',exAr:'أحب شرب الشاي.'},{w:'喝酒',py:'hē jiǔ',en:'drink alcohol',ar:'يشرب الكحول',ex:'他不喜欢喝酒。',exEn:'He doesn\'t like drinking alcohol.',exAr:'هو لا يحب شرب الكحول.'}] },
+        '爱': { en: 'love', ar: 'حب', words: [{w:'爱好',py:'ài hào',en:'hobby / interest',ar:'هواية',ex:'我的爱好是读书。',exEn:'My hobby is reading.',exAr:'هوايتي القراءة.'},{w:'可爱',py:'kě ài',en:'cute / adorable',ar:'لطيف / محبوب',ex:'这只猫真可爱。',exEn:'This cat is so cute.',exAr:'هذه القطة لطيفة جداً.'},{w:'爱人',py:'ài rén',en:'spouse / lover',ar:'شريك الحياة',ex:'她是我的爱人。',exEn:'She is my spouse.',exAr:'هي شريكة حياتي.'}] },
+        '心': { en: 'heart', ar: 'قلب', words: [{w:'小心',py:'xiǎo xīn',en:'careful',ar:'حذر',ex:'做事要小心。',exEn:'Be careful in what you do.',exAr:'كن حذراً فيما تفعله.'},{w:'开心',py:'kāi xīn',en:'happy',ar:'سعيد',ex:'今天我很开心。',exEn:'I am very happy today.',exAr:'أنا سعيد جداً اليوم.'},{w:'心里',py:'xīn lǐ',en:'in one\'s heart',ar:'في القلب',ex:'我心里很感动。',exEn:'I am deeply touched in my heart.',exAr:'أنا متأثر في قلبي.'}] },
+        '水': { en: 'water', ar: 'ماء', words: [{w:'水果',py:'shuǐ guǒ',en:'fruit',ar:'فاكهة',ex:'我喜欢吃水果。',exEn:'I like eating fruit.',exAr:'أحب أكل الفاكهة.'},{w:'水平',py:'shuǐ píng',en:'level / standard',ar:'مستوى',ex:'他的中文水平很高。',exEn:'His Chinese level is very high.',exAr:'مستواه في اللغة الصينية عالٍ جداً.'},{w:'开水',py:'kāi shuǐ',en:'boiled water',ar:'ماء مغلي',ex:'喝开水最健康。',exEn:'Drinking boiled water is healthiest.',exAr:'شرب الماء المغلي هو الأكثر صحة.'}] },
+        '火': { en: 'fire', ar: 'نار', words: [{w:'火车',py:'huǒ chē',en:'train',ar:'قطار',ex:'我坐火车去北京。',exEn:'I take the train to Beijing.',exAr:'أذهب إلى بكين بالقطار.'},{w:'火锅',py:'huǒ guō',en:'hot pot',ar:'وعاء الطهي الساخن',ex:'我们去吃火锅吧。',exEn:'Let\'s go eat hot pot.',exAr:'لنذهب لنأكل الطنجرة الساخنة.'},{w:'着火',py:'zháo huǒ',en:'on fire / catch fire',ar:'يشتعل',ex:'快走，着火了！',exEn:'Quick, it\'s on fire!',exAr:'تعال بسرعة، هناك حريق!'}] },
+        '日': { en: 'sun / day', ar: 'شمس / يوم', words: [{w:'日本',py:'rì běn',en:'Japan',ar:'اليابان',ex:'日本的樱花很美。',exEn:'Cherry blossoms in Japan are beautiful.',exAr:'أزهار الكرز في اليابان جميلة.'},{w:'日子',py:'rì zi',en:'day / life',ar:'أيام / معيشة',ex:'过好每一天的日子。',exEn:'Live each day well.',exAr:'عش كل يوم بشكل جيد.'},{w:'生日',py:'shēng rì',en:'birthday',ar:'عيد ميلاد',ex:'今天是我的生日。',exEn:'Today is my birthday.',exAr:'اليوم هو عيد ميلادي.'}] },
+        '月': { en: 'moon / month', ar: 'قمر / شهر', words: [{w:'月亮',py:'yuè liang',en:'moon',ar:'القمر',ex:'今晚的月亮很圆。',exEn:'The moon is very round tonight.',exAr:'القمر مستدير جداً الليلة.'},{w:'月份',py:'yuè fèn',en:'month',ar:'الشهر',ex:'这个月份很重要。',exEn:'This month is very important.',exAr:'هذا الشهر مهم جداً.'},{w:'明月',py:'míng yuè',en:'bright moon',ar:'القمر المضيء',ex:'明月照我心。',exEn:'The bright moon shines on my heart.',exAr:'القمر المضيء يضيء قلبي.'}] },
+        '山': { en: 'mountain', ar: 'جبل', words: [{w:'山水',py:'shān shuǐ',en:'landscape',ar:'منظر طبيعي',ex:'中国的山水很美丽。',exEn:'China\'s landscapes are beautiful.',exAr:'المناظر الطبيعية في الصين جميلة.'},{w:'山地',py:'shān dì',en:'mountainous area',ar:'منطقة جبلية',ex:'山地气候很凉爽。',exEn:'The mountain climate is very cool.',exAr:'مناخ المنطقة الجبلية بارد جداً.'},{w:'火山',py:'huǒ shān',en:'volcano',ar:'بركان',ex:'那座火山还活着。',exEn:'That volcano is still active.',exAr:'ذلك البركان لا يزال نشطاً.'}] },
+        '木': { en: 'wood / tree', ar: 'خشب / شجرة', words: [{w:'木头',py:'mù tou',en:'wood / log',ar:'خشبة',ex:'这把椅子是木头做的。',exEn:'This chair is made of wood.',exAr:'هذا الكرسي مصنوع من الخشب.'},{w:'树木',py:'shù mù',en:'trees',ar:'الأشجار',ex:'公园里有很多树木。',exEn:'There are many trees in the park.',exAr:'يوجد الكثير من الأشجار في الحديقة.'},{w:'木耳',py:'mù ěr',en:'wood ear mushroom',ar:'فطر الأذن الخشبية',ex:'木耳很健康。',exEn:'Wood ear mushroom is very healthy.',exAr:'فطر الأذن الخشبية صحي جداً.'}] },
+        '口': { en: 'mouth', ar: 'فم', words: [{w:'出口',py:'chū kǒu',en:'exit / export',ar:'مخرج / تصدير',ex:'出口在右边。',exEn:'The exit is on the right.',exAr:'المخرج على اليمين.'},{w:'入口',py:'rù kǒu',en:'entrance / import',ar:'مدخل / استيراد',ex:'入口在哪里？',exEn:'Where is the entrance?',exAr:'أين المدخل؟'},{w:'口语',py:'kǒu yǔ',en:'spoken language',ar:'اللغة المنطوقة',ex:'她的口语很流利。',exEn:'Her spoken language is very fluent.',exAr:'لغتها المنطوقة طلقة جداً.'}] },
+        '手': { en: 'hand', ar: 'يد', words: [{w:'手机',py:'shǒu jī',en:'mobile phone',ar:'هاتف محمول',ex:'你的手机号是多少？',exEn:'What is your phone number?',exAr:'ما هو رقم هاتفك؟'},{w:'手表',py:'shǒu biǎo',en:'watch',ar:'ساعة يد',ex:'这块手表是礼物。',exEn:'This watch is a gift.',exAr:'هذه الساعة هدية.'},{w:'握手',py:'wò shǒu',en:'shake hands',ar:'المصافحة',ex:'见面时我们握手。',exEn:'We shake hands when we meet.',exAr:'نتصافح عند اللقاء.'}] },
+        '目': { en: 'eye', ar: 'عين', words: [{w:'目前',py:'mù qián',en:'currently / at present',ar:'حالياً',ex:'目前我在上海工作。',exEn:'Currently I work in Shanghai.',exAr:'أعمل حالياً في شنغهاي.'},{w:'注目',py:'zhù mù',en:'pay attention to',ar:'يلفت الانتباه',ex:'他的表演很引人注目。',exEn:'His performance is very eye-catching.',exAr:'أداؤه يلفت الانتباه كثيراً.'},{w:'目的',py:'mù dì',en:'purpose / goal',ar:'هدف / غرض',ex:'学习的目的是进步。',exEn:'The purpose of study is progress.',exAr:'هدف الدراسة هو التقدم.'}] },
+        '语': { en: 'language', ar: 'لغة', words: [{w:'汉语',py:'hàn yǔ',en:'Chinese / Mandarin',ar:'اللغة الصينية',ex:'汉语是世界上最难的语言之一。',exEn:'Chinese is one of the world\'s hardest languages.',exAr:'اللغة الصينية من أصعب لغات العالم.'},{w:'英语',py:'yīng yǔ',en:'English',ar:'الإنجليزية',ex:'她的英语很好。',exEn:'Her English is very good.',exAr:'إنجليزيتها جيدة جداً.'},{w:'语法',py:'yǔ fǎ',en:'grammar',ar:'قواعد اللغة',ex:'学好语法很重要。',exEn:'Learning grammar well is important.',exAr:'تعلم قواعد اللغة مهم جداً.'}] },
+        '家': { en: 'home / family', ar: 'بيت / عائلة', words: [{w:'家人',py:'jiā rén',en:'family members',ar:'أفراد الأسرة',ex:'我的家人都在北京。',exEn:'My family are all in Beijing.',exAr:'عائلتي جميعها في بكين.'},{w:'回家',py:'huí jiā',en:'go home',ar:'يرجع للبيت',ex:'我要回家了。',exEn:'I am going home.',exAr:'سأرجع إلى البيت.'},{w:'大家',py:'dà jiā',en:'everyone',ar:'الجميع',ex:'大家好，欢迎！',exEn:'Hello everyone, welcome!',exAr:'مرحباً بالجميع، أهلاً وسهلاً!'}] },
+        '朋': { en: 'friend (comp.)', ar: 'صاحب', words: [{w:'朋友',py:'péng you',en:'friend',ar:'صديق',ex:'他是我最好的朋友。',exEn:'He is my best friend.',exAr:'هو أفضل صديق لي.'},{w:'老朋友',py:'lǎo péng you',en:'old friend',ar:'صديق قديم',ex:'他是我的老朋友。',exEn:'He is my old friend.',exAr:'هو صديقي القديم.'},{w:'交朋友',py:'jiāo péng you',en:'make friends',ar:'يصادق',ex:'我喜欢交朋友。',exEn:'I like making friends.',exAr:'أحب مصادقة الناس.'}] },
+        '友': { en: 'friendly / friend', ar: 'ودود / صديق', words: [{w:'友好',py:'yǒu hǎo',en:'friendly',ar:'ودي / ودود',ex:'他对人很友好。',exEn:'He is very friendly to people.',exAr:'هو ودود جداً مع الناس.'},{w:'友谊',py:'yǒu yì',en:'friendship',ar:'صداقة',ex:'真正的友谊很珍贵。',exEn:'True friendship is precious.',exAr:'الصداقة الحقيقية ثمينة.'},{w:'朋友',py:'péng you',en:'friend',ar:'صديق',ex:'她是我的好朋友。',exEn:'She is my good friend.',exAr:'هي صديقتي الجيدة.'}] },
+        '老': { en: 'old / aged', ar: 'عجوز / قديم', words: [{w:'老师',py:'lǎo shī',en:'teacher',ar:'مدرس / معلم',ex:'老师对学生很好。',exEn:'The teacher is very kind to students.',exAr:'المعلم طيب جداً مع الطلاب.'},{w:'老人',py:'lǎo rén',en:'elderly person',ar:'شخص مسن',ex:'我们要尊重老人。',exEn:'We should respect the elderly.',exAr:'يجب احترام كبار السن.'},{w:'老家',py:'lǎo jiā',en:'hometown',ar:'بلد الأصل / القرية',ex:'我的老家在农村。',exEn:'My hometown is in the countryside.',exAr:'بلدتي الأصلية في الريف.'}] },
+        '师': { en: 'teacher / master', ar: 'معلم / أستاذ', words: [{w:'老师',py:'lǎo shī',en:'teacher',ar:'معلم',ex:'老师讲得很清楚。',exEn:'The teacher explains very clearly.',exAr:'المعلم يشرح بوضوح تام.'},{w:'医师',py:'yī shī',en:'physician / doctor',ar:'طبيب',ex:'她是一位好医师。',exEn:'She is a good physician.',exAr:'هي طبيبة جيدة.'},{w:'律师',py:'lǜ shī',en:'lawyer',ar:'محامٍ',ex:'我需要一位律师。',exEn:'I need a lawyer.',exAr:'أحتاج إلى محامٍ.'}] },
+        '书': { en: 'book', ar: 'كتاب', words: [{w:'书本',py:'shū běn',en:'book',ar:'كتاب',ex:'我喜欢读书本。',exEn:'I like reading books.',exAr:'أحب قراءة الكتب.'},{w:'图书馆',py:'tú shū guǎn',en:'library',ar:'مكتبة',ex:'图书馆里很安静。',exEn:'The library is very quiet.',exAr:'المكتبة هادئة جداً.'},{w:'书法',py:'shū fǎ',en:'calligraphy',ar:'فن الخط',ex:'书法是中国的传统艺术。',exEn:'Calligraphy is a traditional Chinese art.',exAr:'فن الخط هو فن صيني تقليدي.'}] },
+        '车': { en: 'vehicle / car', ar: 'سيارة / مركبة', words: [{w:'汽车',py:'qì chē',en:'car / automobile',ar:'سيارة',ex:'他有一辆汽车。',exEn:'He has a car.',exAr:'لديه سيارة.'},{w:'公共汽车',py:'gōng gòng qì chē',en:'bus',ar:'حافلة',ex:'我坐公共汽车上班。',exEn:'I take the bus to work.',exAr:'أذهب للعمل بالحافلة.'},{w:'自行车',py:'zì xíng chē',en:'bicycle',ar:'دراجة هوائية',ex:'骑自行车很环保。',exEn:'Riding a bicycle is very eco-friendly.',exAr:'ركوب الدراجة الهوائية صديق للبيئة.'}] },
+    };
+
+    // ========================================================
+    // 翻译功能：优先查内置词库，否则用 MyMemory 免费 API
+    // ========================================================
     async function getTranslation(text) {
-        const prompt = `Translate the Chinese word or sentence "${text}" to a concise 1-3 word English definition. Return only the English word(s).`;
-        const systemPrompt = "You are a helpful dictionary. Provide only the concise translation.";
-        let retries = 0;
-        const maxRetries = 5;
-        while (retries < maxRetries) {
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
-                });
-                const result = await response.json();
-                const resText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                return resText ? resText.trim() : "Definition N/A";
-            } catch (e) {
-                retries++;
-                const delay = Math.pow(2, retries) * 500;
-                await new Promise(res => setTimeout(res, delay));
-            }
+        // 单字查词库
+        if (text.length === 1 && CHAR_DICT[text]) return CHAR_DICT[text].en;
+        // 多字词查每个字拼接
+        if ([...text].every(c => CHAR_DICT[c])) {
+            return [...text].map(c => CHAR_DICT[c].en).join(' / ');
         }
-        return "Error fetching";
+        // 回退到 MyMemory 免费翻译（无需 Key）
+        try {
+            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`);
+            const json = await res.json();
+            const tr = json?.responseData?.translatedText;
+            return tr || "—";
+        } catch(e) { return "—"; }
     }
 
-    // 修改：核心初始化函数，支持多字
+    async function getArabicTranslation(text) {
+        if (text.length === 1 && CHAR_DICT[text]) return CHAR_DICT[text].ar;
+        if ([...text].every(c => CHAR_DICT[c])) {
+            return [...text].map(c => CHAR_DICT[c].ar).join(' / ');
+        }
+        try {
+            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|ar`);
+            const json = await res.json();
+            return json?.responseData?.translatedText || "—";
+        } catch(e) { return "—"; }
+    }
+
+    function getWordCompounds(char) {
+        if (CHAR_DICT[char]) return CHAR_DICT[char].words;
+        return null;
+    }
+
     async function initAll() {
         isLooping = false;
         writers = [];
         charDataArray = [];
-        const inputText = document.getElementById('charInput').value || '美';
-        const chars = Array.from(inputText).filter(c => /\p{Unified_Ideograph}/u.test(c)); // 过滤出汉字
+        const inputText = document.getElementById('charInput').value || '你好';
+        const chars = Array.from(inputText).filter(c => /\p{Unified_Ideograph}/u.test(c)); 
         
         if(chars.length === 0) return;
 
-        // 清理旧内容
         document.getElementById('canvasArea').innerHTML = '';
         document.getElementById('compDisplayRoot').innerHTML = '';
+        document.getElementById('wordsDisplayRoot').innerHTML = '';
         document.getElementById('worksheetRowsRoot').innerHTML = '';
-        document.getElementById('sentenceWorksheetRoot').innerHTML = ''; // 【新增】清理句子区
+        document.getElementById('sentenceWorksheetRoot').innerHTML = '';
 
-        // 全局拼音与翻译
         const fullPinyin = pinyinPro.pinyin(inputText);
         getTranslation(inputText).then(meaning => {
             currentMeaning = meaning;
         });
+        getArabicTranslation(inputText).then(_ar => { /* Arabic stored per char */ });
 
-        // 1. 创建三行展示区（彩虹图、动画、空心）
         const labels = ['彩虹笔顺图', '循环动画', '空心轮廓'];
         labels.forEach((label, groupIdx) => {
             const section = document.createElement('div');
@@ -239,10 +325,11 @@
                 card.innerHTML = `
                     <div class="pinyin-display">${pinyin}</div>
                     <div class="meaning-display" id="meaning_${groupIdx}_${charIdx}">...</div>
+                    <div class="meaning-ar" id="meaning_ar_${groupIdx}_${charIdx}">...</div>
                     <div id="${targetId}" class="grid-container"></div>
                 `;
                 
-                if (groupIdx === 1 && charIdx === 0) { // 仅在动画组的第一个卡片显示切换按钮
+                if (groupIdx === 1 && charIdx === 0) { 
                     const toggle = document.createElement('div');
                     toggle.className = 'stroke-mode-toggle no-print';
                     toggle.style.marginTop = '10px';
@@ -259,52 +346,50 @@
             document.getElementById('canvasArea').appendChild(section);
         });
 
-        // 2. 加载数据并渲染
         for (let i = 0; i < chars.length; i++) {
             const char = chars[i];
             try {
                 const data = await HanziWriter.loadCharacterData(char);
                 charDataArray.push({ char, data });
 
-                // 渲染彩虹图 (target 0)
                 const t0 = document.getElementById(`target_0_${i}`);
                 t0.appendChild(createGridSvg(240));
                 t0.appendChild(generateSvgGroup(data.strokes, data.medians, true));
 
-                // 初始化动画 (target 1)
+                // 页面预览速度同步优化
                 const w = HanziWriter.create(`target_1_${i}`, char, {
                     width: 240, height: 240, padding: 20, showOutline: true,
-                    strokeAnimationSpeed: 1.5, delayBetweenStrokes: 150
+                    strokeAnimationSpeed: 0.5, delayBetweenStrokes: 500 
                 });
                 writers.push(w);
 
-                // 渲染空心图 (target 2)
                 const t2 = document.getElementById(`target_2_${i}`);
                 t2.appendChild(createGridSvg(240));
                 t2.appendChild(generateSvgGroup(data.strokes, null, false, null, true));
 
-                // 词义展示（单个字展示简短翻译）
                 getTranslation(char).then(m => {
                     for(let g=0; g<3; g++) {
                         const el = document.getElementById(`meaning_${g}_${i}`);
                         if(el) el.textContent = m;
                     }
                 });
+                getArabicTranslation(char).then(ar => {
+                    for(let g=0; g<3; g++) {
+                        const el = document.getElementById(`meaning_ar_${g}_${i}`);
+                        if(el) el.textContent = ar;
+                    }
+                });
 
-                // 部件拆解
                 analyzeAndDisplayComponents(char, data, i);
+                buildCharWordsPanel(char, i);
                 
             } catch (e) { console.error(e); }
         }
 
-        // 启动动画循环
         isLooping = true;
-        applyAnimColors();
         runInfiniteAnimation();
-
-        // 3. 构建字帖
         buildWorksheet(chars, charDataArray);
-        buildSentenceWorksheet(chars, charDataArray); // 【新增】构建句子预览
+        buildSentenceWorksheet(chars, charDataArray); 
     }
 
     function createGridSvg(size = 380, color = "#e0e0e0", isBold = false) {
@@ -337,7 +422,6 @@
             strokes.forEach((pathData, i) => {
                 const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 p.setAttribute("d", pathData); 
-                // 修复逻辑：如果是指定高亮某笔，其余设为透明
                 if (highlightIndex !== null) {
                     p.setAttribute("fill", i === highlightIndex ? (colorOverride || COLORS[i % COLORS.length]) : "rgba(0,0,0,0)");
                 } else {
@@ -393,17 +477,20 @@
 
     function runInfiniteAnimation() {
         if (!isLooping || writers.length === 0) return;
-        
-        // 同时启动所有字的动画
-        const promises = writers.map(w => {
-            return new Promise(resolve => {
-                w.animateCharacter({ onComplete: resolve });
-            });
+        applyAnimColors();
+        writers.forEach((w, idx) => {
+            animateWriterLoop(w, idx);
         });
+    }
 
-        Promise.all(promises).then(() => {
-            if (isLooping) {
-                setTimeout(runInfiniteAnimation, 2000);
+    function animateWriterLoop(w, idx) {
+        if (!isLooping) return;
+        w.animateCharacter({
+            onComplete: function() {
+                if (!isLooping) return;
+                setTimeout(function() {
+                    animateWriterLoop(w, idx);
+                }, 2000);
             }
         });
     }
@@ -417,7 +504,6 @@
         document.getElementById('downloadModal').style.display = 'none';
     }
 
-    // 修改：执行下载，如果是多字则打包合成
     async function executeDownload(mode) {
         closeModal();
         const inputText = document.getElementById('charInput').value;
@@ -429,7 +515,6 @@
         const showEnglish = (mode === 'full' || mode === 'english');
         const headerHeight = (showPinyin || showEnglish) ? 200 : 0;
         
-        // 画布尺寸：横向排列所有字
         canvas.width = 1024 * count;
         canvas.height = 1024 + headerHeight;
         
@@ -439,8 +524,6 @@
         for(let i=0; i<count; i++) {
             const char = charDataArray[i].char;
             const data = charDataArray[i].data;
-            
-            // 拼音与翻译（由于是词组下载，上方显示全词拼音或单字拼音）
             if (showPinyin) {
                 const py = mode === 'english' ? pinyinPro.pinyin(char, {toneType: 'none'}) : pinyinPro.pinyin(char);
                 ctx.fillStyle = "#FF8C42";
@@ -448,7 +531,6 @@
                 ctx.textAlign = "center";
                 ctx.fillText(py, (i * 1024) + 512, 90);
             }
-
             let svg;
             if (currentDownloadType === 'main') {
                 svg = generateSvgGroup(data.strokes, data.medians, true);
@@ -477,16 +559,42 @@
         });
     }
 
-    // 修改：支持词组部件展示
+    function buildCharWordsPanel(char, charIdx) {
+        const root = document.getElementById('wordsDisplayRoot');
+        const words = getWordCompounds(char);
+        const group = document.createElement('div');
+        group.className = 'words-char-group';
+        group.innerHTML = `<div class="words-char-title">「${char}」常用组词 / Common Words</div>`;
+        if (!words || words.length === 0) {
+            group.innerHTML += `<div style="color:#aaa; font-size:13px;">暂无词条 / No entries available for this character.</div>`;
+        } else {
+            words.forEach(w => {
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.innerHTML = `
+                    <div class="word-item-header">
+                        <span class="word-item-hanzi">${w.w}</span>
+                        <span class="word-item-py">${w.py}</span>
+                        <span class="word-item-en">🇬🇧 ${w.en}</span>
+                        <span class="word-item-ar">🇸🇦 ${w.ar}</span>
+                    </div>
+                    <div class="word-item-ex">📝 ${w.ex}</div>
+                    <div class="word-item-ex-en">🇬🇧 ${w.exEn}</div>
+                    <div class="word-item-ex-ar">🇸🇦 ${w.exAr}</div>
+                `;
+                group.appendChild(item);
+            });
+        }
+        root.appendChild(group);
+    }
+
     function analyzeAndDisplayComponents(char, data, charIdx) {
         const root = document.getElementById('compDisplayRoot');
         const group = document.createElement('div');
         group.className = 'comp-group';
         group.innerHTML = `<div class="comp-group-title">「${char}」的部件：</div>`;
-        
         const container = document.createElement('div');
         container.className = 'comp-display';
-        
         const total = data.strokes.length;
         let comps = [];
         if (data.radStrokes) {
@@ -504,8 +612,6 @@
         });
         group.appendChild(container);
         root.appendChild(group);
-        
-        // 存储用于导出的部件信息
         charDataArray[charIdx].comps = comps;
     }
 
@@ -517,16 +623,16 @@
                 if (data.radStrokes && data.radStrokes.length > 0) {
                     const radSet = new Set(data.radStrokes);
                     data.strokes.forEach((_, i) => {
-                        w.updateColor(`stroke${i}`, radSet.has(i) ? '#E74C3C' : '#3498DB');
+                        w.updateColor(`strokeColor`, radSet.has(i) ? '#E74C3C' : '#3498DB', { strokeNum: i });
                     });
                 } else {
                     data.strokes.forEach((_, i) => {
-                        w.updateColor(`stroke${i}`, i % 2 === 0 ? '#E74C3C' : '#3498DB');
+                        w.updateColor(`strokeColor`, i % 2 === 0 ? '#E74C3C' : '#3498DB', { strokeNum: i });
                     });
                 }
             } else {
                 data.strokes.forEach((_, i) => {
-                    w.updateColor(`stroke${i}`, COLORS[i % COLORS.length]);
+                    w.updateColor(`strokeColor`, COLORS[i % COLORS.length], { strokeNum: i });
                 });
             }
         });
@@ -562,25 +668,19 @@
         return map;
     }
 
-    // 修改：支持多字字帖构建
     function buildWorksheet(chars, dataArr) {
         const root = document.getElementById('worksheetRowsRoot');
         root.innerHTML = '';
-        
         dataArr.forEach((item, idx) => {
             const char = item.char;
             const data = item.data;
-            
             const charWrapper = document.createElement('div');
             charWrapper.style.marginBottom = "30px";
             charWrapper.innerHTML = `<div class="row-label"><i>汉字 ${idx+1}</i>：${char}</div>`;
-
-            // 第一行：笔顺展示
             const row1 = document.createElement('div');
             row1.className = 'worksheet-row-wrapper';
             const row1Content = document.createElement('div');
             row1Content.className = 'worksheet-row';
-            
             const total = data.strokes.length;
             const compColorMap = getComponentColorMap(data);
             for(let i = 1; i <= total; i++) {
@@ -593,13 +693,11 @@
                 }
                 row1Content.appendChild(cell);
             }
-            // 完整字（彩虹）
             const fullCell = createCell();
             fullCell.appendChild(generateSvgGroup(data.strokes, data.medians, true));
             row1Content.appendChild(fullCell);
             row1.appendChild(row1Content);
 
-            // 第二行：临摹
             const row2 = document.createElement('div');
             row2.className = 'worksheet-row-wrapper';
             const row2Content = document.createElement('div');
@@ -613,40 +711,32 @@
                 row2Content.appendChild(cell);
             }
             row2.appendChild(row2Content);
-
             charWrapper.appendChild(row1);
             charWrapper.appendChild(row2);
             root.appendChild(charWrapper);
         });
     }
 
-    // 【新增代码位置】构建句子练习纸的预览
     function buildSentenceWorksheet(chars, dataArr) {
         const root = document.getElementById('sentenceWorksheetRoot');
         root.innerHTML = `<div class="row-label">📝 句子练习纸预览 (Sentence Sheet Preview)</div>`;
-        
         const wrapper = document.createElement('div');
         wrapper.className = 'worksheet-row-wrapper';
         const row = document.createElement('div');
         row.className = 'worksheet-row';
         row.id = "sentenceRowPreview";
-
         dataArr.forEach((item) => {
             const box = document.createElement('div');
             box.className = 'sentence-cell-box';
-            
             const pinyinDiv = document.createElement('div');
             pinyinDiv.className = 'sentence-pinyin';
             pinyinDiv.textContent = pinyinPro.pinyin(item.char);
-            
             const cell = createCell();
-            cell.appendChild(generateSvgGroup(item.data.strokes, null, false, "#eee")); // 浅色临摹背景
-            
+            cell.appendChild(generateSvgGroup(item.data.strokes, null, false, "#eee")); 
             box.appendChild(pinyinDiv);
             box.appendChild(cell);
             row.appendChild(box);
         });
-        
         wrapper.appendChild(row);
         root.appendChild(wrapper);
     }
@@ -658,15 +748,11 @@
         return cell;
     }
 
-    // 修复后的批量下载逻辑
     async function downloadAllStrokes() {
-        const inputText = document.getElementById('charInput').value;
         for(const item of charDataArray) {
             const char = item.char;
             const allStrokes = item.data.strokes;
             for(let i=0; i<allStrokes.length; i++) {
-                // 修改点：传入完整的 allStrokes，但指定当前高亮索引 i。
-                // 这样能保持 SVG 的 Bounds/视口一致，防止浏览器渲染丢失。
                 const svg = generateSvgGroup(allStrokes, null, false, COLORS[i % COLORS.length], false, i);
                 await exportSingleSvg(svg, `${char}_第${i+1}笔.png`, 'none', true);
                 await new Promise(r => setTimeout(r, 200));
@@ -674,7 +760,6 @@
         }
     }
 
-    // 修改：支持批量下载所有部件
     async function downloadComponents() {
         for(const item of charDataArray) {
             const char = item.char;
@@ -686,7 +771,6 @@
         }
     }
 
-    // 辅助导出函数
     async function exportSingleSvg(svg, filename, mode = 'none', transparent = false) {
         return new Promise(resolve => {
             const canvas = document.getElementById('exportCanvas');
@@ -705,30 +789,22 @@
         });
     }
 
-    // 修改：字帖下载支持长词组
     async function downloadWorksheet() {
         const inputText = document.getElementById('charInput').value || '字';
         const cellSize = 400; const padding = 40;
         const sheetCanvas = document.getElementById('sheetCanvas');
         const ctx = sheetCanvas.getContext('2d');
-        
-        // 计算最大宽度
         let maxCols = 0;
         const wrappers = document.querySelectorAll('.worksheet-row');
         wrappers.forEach(w => { if(w.children.length > maxCols) maxCols = w.children.length; });
-
         sheetCanvas.width = cellSize * maxCols; 
         sheetCanvas.height = (cellSize * 2 + padding * 2) * charDataArray.length;
-        
         ctx.fillStyle = "white"; ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
-        
         const rows = document.querySelectorAll('.worksheet-row');
         for(let i=0; i<rows.length; i++) {
             const cells = rows[i].children;
-            if (cells[0] && cells[0].classList.contains('sentence-cell-box')) continue; // 跳过句子预览行
-
+            if (cells[0] && cells[0].classList.contains('sentence-cell-box')) continue; 
             const yOffset = Math.floor(i/2) * (cellSize * 2 + padding * 2) + (i % 2 === 1 ? cellSize + padding : 0);
-            
             for(let j=0; j<cells.length; j++) {
                 const svgs = cells[j].querySelectorAll('svg');
                 if(svgs[0]) await drawSvgToCanvas(svgs[0], ctx, j * cellSize, yOffset, cellSize);
@@ -736,56 +812,248 @@
                 ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(j * cellSize, yOffset, cellSize, cellSize);
             }
         }
-        
         const link = document.createElement('a'); 
         link.download = `${inputText}_全词双行练习帖.png`; 
         link.href = sheetCanvas.toDataURL("image/png"); 
         link.click();
     }
 
-    // 【新增代码位置】句子导出的具体逻辑函数
     async function downloadSentenceWorksheet() {
         const inputText = document.getElementById('charInput').value || '句子';
-        const cellSize = 400; 
-        const pinyinHeight = 120;
+        const cellSize = 400; const pinyinHeight = 120;
         const sheetCanvas = document.getElementById('sheetCanvas');
         const ctx = sheetCanvas.getContext('2d');
-        
         const count = charDataArray.length;
         sheetCanvas.width = cellSize * count;
         sheetCanvas.height = cellSize + pinyinHeight;
-
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
-
+        ctx.fillStyle = "white"; ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
         for(let i=0; i<count; i++) {
             const item = charDataArray[i];
             const x = i * cellSize;
-
-            // 1. 绘制拼音
             ctx.fillStyle = "#FF8C42";
             ctx.font = "bold 60px 'PingFang SC'";
             ctx.textAlign = "center";
             ctx.fillText(pinyinPro.pinyin(item.char), x + cellSize/2, 80);
-
-            // 2. 绘制田字格背景
             const gridSvg = createGridSvg(cellSize, "#ccc");
             await drawSvgToCanvas(gridSvg, ctx, x, pinyinHeight, cellSize);
-
-            // 3. 绘制浅色字(临摹用)
             const charSvg = generateSvgGroup(item.data.strokes, null, false, "#eee");
             await drawSvgToCanvas(charSvg, ctx, x, pinyinHeight, cellSize);
-
-            // 4. 绘制边框
-            ctx.strokeStyle = "#333";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, pinyinHeight, cellSize, cellSize);
+            ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(x, pinyinHeight, cellSize, cellSize);
         }
-
         const link = document.createElement('a'); 
         link.download = `${inputText}_句子书写练习纸.png`; 
         link.href = sheetCanvas.toDataURL("image/png"); 
         link.click();
+    }
+
+    // ========================================================
+    // 循环动画下载功能 - v47.4 优化慢速版
+    // ========================================================
+
+    let animLoopCount = 1;       
+    let animLayout = 'row';      
+    let isRecording = false;     
+
+    function showAnimDownloadModal() {
+        if (charDataArray.length === 0) {
+            alert('请先点击「生成并演示」加载汉字数据。');
+            return;
+        }
+        document.getElementById('animProgressBar').style.width = '0%';
+        document.getElementById('animStatusText').textContent = '准备就绪，点击开始录制。';
+        document.getElementById('animStartBtn').disabled = false;
+        document.getElementById('animDownloadModal').style.display = 'flex';
+    }
+
+    function closeAnimModal() {
+        document.getElementById('animDownloadModal').style.display = 'none';
+        isRecording = false;
+    }
+
+    function setAnimLoopCount(n) {
+        animLoopCount = n;
+        [1,2,3].forEach(i => {
+            document.getElementById('animLoop'+i).classList.toggle('active', i === n);
+        });
+    }
+
+    function setAnimLayout(layout) {
+        animLayout = layout;
+        document.getElementById('animLayoutRow').classList.toggle('active', layout === 'row');
+        document.getElementById('animLayoutCol').classList.toggle('active', layout === 'col');
+    }
+
+    async function startAnimRecording() {
+        if (isRecording) return;
+        isRecording = true;
+
+        const startBtn    = document.getElementById('animStartBtn');
+        const statusEl    = document.getElementById('animStatusText');
+        const progressBar = document.getElementById('animProgressBar');
+        startBtn.disabled = true;
+
+        try {
+            const chars = charDataArray;
+            const N = chars.length;
+            const cellSize    = 300;
+            
+            // --- 核心修改：恢复到适中的慢速 (800ms/笔)，循环间隔 2 秒 ---
+            const strokeDelay = 800;   
+            const pauseDelay  = 2000;  
+            // --------------------------------------------------------
+
+            const canvasW = animLayout === 'row' ? cellSize * N : cellSize;
+            const canvasH = animLayout === 'row' ? cellSize : cellSize * N;
+
+            const recCanvas = document.createElement('canvas');
+            recCanvas.width  = canvasW;
+            recCanvas.height = canvasH;
+            const recCtx = recCanvas.getContext('2d');
+
+            statusEl.textContent = '正在准备帧数据…';
+            progressBar.style.width = '5%';
+
+            const charFrames = [];
+            for (let ci = 0; ci < N; ci++) {
+                const item = chars[ci];
+                const frames = [];
+                for (let s = 1; s <= item.data.strokes.length; s++) {
+                    const svgStr = buildFrameSvgString(item.data, s, cellSize);
+                    const bmp = await svgStringToBitmap(svgStr, cellSize);
+                    frames.push(bmp);
+                }
+                charFrames.push(frames);
+                progressBar.style.width = (5 + 30 * (ci + 1) / N) + '%';
+            }
+
+            statusEl.textContent = '正在初始化 GIF 编码器…';
+            progressBar.style.width = '37%';
+
+            let maxStrokes = 0;
+            chars.forEach(item => { if (item.data.strokes.length > maxStrokes) maxStrokes = item.data.strokes.length; });
+
+            const workerSrc = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js')
+                .then(r => r.text());
+            const workerBlob = new Blob([workerSrc], { type: 'application/javascript' });
+            const workerURL  = URL.createObjectURL(workerBlob);
+
+            const gif = new GIF({
+                workers: 2,
+                quality: 6,           
+                width:   canvasW,
+                height:  canvasH,
+                workerScript: workerURL,
+                repeat: 0,            
+                background: '#ffffff',
+            });
+
+            statusEl.textContent = '正在合成慢速动画帧…';
+            const totalFrames = (maxStrokes + 1) * animLoopCount;
+            let doneFrames = 0;
+
+            for (let loop = 0; loop < animLoopCount; loop++) {
+                for (let f = 0; f < maxStrokes; f++) {
+                    recCtx.fillStyle = '#ffffff';
+                    recCtx.fillRect(0, 0, canvasW, canvasH);
+                    for (let ci = 0; ci < N; ci++) {
+                        const frames = charFrames[ci];
+                        const bmp = frames[Math.min(f, frames.length - 1)];
+                        const dx = animLayout === 'row' ? ci * cellSize : 0;
+                        const dy = animLayout === 'row' ? 0 : ci * cellSize;
+                        if (bmp) recCtx.drawImage(bmp, dx, dy, cellSize, cellSize);
+                    }
+                    gif.addFrame(recCtx, { copy: true, delay: strokeDelay });
+                    doneFrames++;
+                    progressBar.style.width = (37 + 40 * doneFrames / totalFrames) + '%';
+                    await new Promise(r => setTimeout(r, 0));
+                }
+                recCtx.fillStyle = '#ffffff';
+                recCtx.fillRect(0, 0, canvasW, canvasH);
+                for (let ci = 0; ci < N; ci++) {
+                    const frames = charFrames[ci];
+                    const bmp = frames[frames.length - 1];
+                    const dx = animLayout === 'row' ? ci * cellSize : 0;
+                    const dy = animLayout === 'row' ? 0 : ci * cellSize;
+                    if (bmp) recCtx.drawImage(bmp, dx, dy, cellSize, cellSize);
+                }
+                gif.addFrame(recCtx, { copy: true, delay: pauseDelay });
+                doneFrames++;
+                progressBar.style.width = (37 + 40 * doneFrames / totalFrames) + '%';
+            }
+
+            statusEl.textContent = '正在编码 GIF…';
+            progressBar.style.width = '80%';
+
+            await new Promise((resolve, reject) => {
+                gif.on('progress', p => {
+                    progressBar.style.width = (80 + p * 18) + '%';
+                });
+                gif.on('finished', blob => {
+                    const url  = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    const inputText = document.getElementById('charInput').value || '汉字';
+                    link.download = `${inputText}_教学循环动画.gif`;
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    URL.revokeObjectURL(workerURL);
+                    resolve();
+                });
+                gif.on('error', err => reject(err));
+                gif.render();
+            });
+
+            statusEl.textContent = '✅ 下载完成！';
+            progressBar.style.width = '100%';
+
+        } catch (err) {
+            console.error('GIF 导出失败:', err);
+            document.getElementById('animStatusText').textContent = '❌ 导出失败：' + (err.message || err);
+        }
+
+        startBtn.disabled = false;
+        isRecording = false;
+    }
+
+    function buildFrameSvgString(data, strokeCount, size) {
+        const gridPath = `M512,0 V1024 M0,512 H1024`;
+        let strokePaths = '';
+        for (let i = 0; i < strokeCount; i++) {
+            const color = COLORS[i % COLORS.length];
+            strokePaths += `<path d="${data.strokes[i]}" fill="${color}"/>`;
+        }
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="white"/>
+  <path d="${gridPath}" stroke="#e0e0e0" stroke-dasharray="30,15" stroke-width="6" fill="none"/>
+  <g transform="${TRANSFORM}">
+    ${strokePaths}
+  </g>
+</svg>`;
+    }
+
+    function svgStringToBitmap(svgStr, size) {
+        return new Promise(resolve => {
+            const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+                const offscreen = document.createElement('canvas');
+                offscreen.width  = size;
+                offscreen.height = size;
+                const ctx = offscreen.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, size, size);
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+                createImageBitmap(offscreen)
+                    .then(bmp => resolve(bmp))
+                    .catch(() => resolve(offscreen));
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+            img.src = url;
+        });
     }
 
     window.onload = initAll;
