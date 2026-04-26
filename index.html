@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.10</title>
+    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.11</title>
     <!-- 引入 Hanzi Writer -->
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <!-- 引入 pinyin-pro 用于获取拼音 -->
@@ -115,9 +115,25 @@
 
         .worksheet-panel { width: 100%; max-width: 1100px; background: white; padding: 30px; border-radius: 24px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .worksheet-row-wrapper { overflow-x: auto; margin-top: 15px; padding-bottom: 10px; }
-        .worksheet-row { display: flex; flex-wrap: nowrap; gap: 2px; background: #333; padding: 2px; width: fit-content; margin-bottom: 5px; }
+        .worksheet-row { display: flex; flex-wrap: nowrap; gap: 2px; background: #eee; padding: 2px; width: fit-content; margin-bottom: 5px; }
         .sentence-cell-box { display: flex; flex-direction: column; align-items: center; background: white; flex-shrink: 0; }
-        .sentence-pinyin { height: 25px; font-size: 12px; color: #FF8C42; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        
+        /* 修复：拼音四线三格样式 */
+        .pinyin-grid {
+            height: 30px;
+            width: 100%;
+            position: relative;
+            background: linear-gradient(to bottom, #eee 1px, transparent 1px) 0 0 / 100% 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #FF8C42;
+            font-weight: bold;
+        }
+        .sentence-pinyin { height: 30px; width: 100%; } /* 继承或覆盖原有拼音容器高度 */
+        
         .worksheet-cell { width: 85px; height: 85px; position: relative; background: white; flex-shrink: 0; }
         
         .row-label { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
@@ -144,12 +160,11 @@
 </head>
 <body>
 
-<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.10 语音配音全能版)</div>
+<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.11 语音配音全能版)</div>
 
 <div class="no-print">
-    <!-- STT: 语音听写录入输入框 -->
     <div class="input-wrapper">
-        <input type="text" id="charInput" value="你好" placeholder="输入汉字/词组...">
+        <input type="text" id="charInput" value="你好！" placeholder="输入汉字/词组...">
         <button class="mic-btn" id="micBtn" onclick="startDictation()" title="点击开始语音识别录入 (Speech to Text)">🎤</button>
     </div>
 
@@ -167,7 +182,7 @@
     <button class="btn-anim-dl" onclick="showAnimDownloadModal()">🎬 下载循环动画 (慢速版)<span>Export Animation</span></button>
 </div>
 
-<!-- 快捷语音设置控制台 (用于卡片快捷点读) -->
+<!-- 快捷语音设置控制台 -->
 <div class="voice-controls no-print">
     <span style="font-size: 14px; color: #555; font-weight: bold;">🗣️ 快捷点读发音人:</span>
     <select id="voiceSelect" class="voice-select">
@@ -301,11 +316,9 @@
     let currentStrokeMode = 'rainbow'; 
     let currentAnimMode = 'rainbow';   
 
-    // ========================================================
     // 内置汉字词库
-    // ========================================================
     const CHAR_DICT = {
-        '你': { en: 'you', ar: 'أنت', words: [{w:'你好',py:'nǐ hǎo',en:'Hello / Hi',ar:'مرحبا',ex:'你好，我是李明。',exEn:'Hello, I am Li Ming.',exAr:'مرحبا، أنا لي مينغ.'},{w:'你们',py:'nǐ men',en:'you (plural)',ar:'أنتم',ex:'你们都来了吗？',exEn:'Have you all come?',exAr:'هل أتيتم جميعاً؟'},{w:'你好吗',py:'nǐ hǎo ma',en:'How are you?',ar:'كيف حالك؟',ex:'你好吗？我很好。',exEn:'How are you? I\'m fine.',exAr:'كيف حالك؟ أنا بخير.'}] },
+        '你': { en: 'you', ar: 'أنت', words: [{w:'你好',py:'nǐ hǎo',en:'Hello / Hi',ar:'مرحبا',ex:'你好，我是李明。',exEn:'Hello, I am Li Ming.',exAr:'مرحبا，أنا لي مينغ.'},{w:'你们',py:'nǐ men',en:'you (plural)',ar:'أنتم',ex:'你们都来了吗？',exEn:'Have you all come?',exAr:'هل أتيتم جميعاً؟'},{w:'你好吗',py:'nǐ hǎo ma',en:'How are you?',ar:'كيف حالك؟',ex:'你好吗？我很好。',exEn:'How are you? I\'m fine.',exAr:'كيف حالك؟ أنا بخير.'}] },
         '好': { en: 'good', ar: 'جيد', words: [{w:'好吃',py:'hǎo chī',en:'delicious',ar:'لذيذ',ex:'这个菜很好吃。',exEn:'This dish is delicious.',exAr:'هذا الطبق لذيذ.'},{w:'好看',py:'hǎo kàn',en:'good-looking',ar:'جميل',ex:'她穿的衣服很好看。',exEn:'The clothes she wears look great.',exAr:'ملابسها تبدو جميلة.'},{w:'好学',py:'hào xué',en:'studious',ar:'محب للتعلم',ex:'他是一个好学的学生。',exEn:'He is a studious student.',exAr:'هو طالب محب للتعلم.'}] },
         '我': { en: 'I / me', ar: 'أنا', words: [{w:'我们',py:'wǒ men',en:'we / us',ar:'نحن',ex:'我们是朋友。',exEn:'We are friends.',exAr:'نحن أصدقاء.'},{w:'我的',py:'wǒ de',en:'my / mine',ar:'ملكي',ex:'这是我的书。',exEn:'This is my book.',exAr:'هذا كتابي.'},{w:'自我',py:'zì wǒ',en:'self',ar:'الذات',ex:'自我介绍一下。',exEn:'Let me introduce myself.',exAr:'دعني أعرف بنفسي.'}] },
         '是': { en: 'to be / is', ar: 'يكون / هو', words: [{w:'是否',py:'shì fǒu',en:'whether or not',ar:'ما إذا',ex:'你是否喜欢中文？',exEn:'Do you like Chinese?',exAr:'هل تحب اللغة الصينية؟'},{w:'还是',py:'hái shi',en:'or / still',ar:'أو / لا يزال',ex:'你喝茶还是咖啡？',exEn:'Do you drink tea or coffee?',exAr:'هل تشرب الشاي أم القهوة？'},{w:'就是',py:'jiù shì',en:'exactly / just',ar:'بالضبط',ex:'这就是我要的答案。',exEn:'This is exactly the answer I want.',exAr:'هذه بالضبط الإجابة التي أريدها.'}] },
@@ -317,19 +330,19 @@
         '下': { en: 'down / below', ar: 'تحت', words: [{w:'下课',py:'xià kè',en:'class is over',ar:'انتهاء الدرس',ex:'下课后我去吃饭。',exEn:'After class I go to eat.',exAr:'بعد الدرس أذهب للأكل.'},{w:'下面',py:'xià miàn',en:'below / underneath',ar:'تحت',ex:'猫在椅子下面。',exEn:'The cat is under the chair.',exAr:'القطة تحت الكرسي.'},{w:'地下',py:'dì xià',en:'underground',ar:'تحت الأرض',ex:'地下停车场在这里。',exEn:'The underground parking is here.',exAr:'موقف السيارات تحت الأرض هنا.'}] },
         '来': { en: 'come', ar: 'يأتي', words: [{w:'来自',py:'lái zì',en:'come from',ar:'قادم من',ex:'他来自北京。',exEn:'He comes from Beijing.',exAr:'هو قادم من بكين.'},{w:'回来',py:'huí lái',en:'come back',ar:'يعود',ex:'他明天回来。',exEn:'He will come back tomorrow.',exAr:'سأعود غداً.'},{w:'进来',py:'jìn lái',en:'come in',ar:'تفضل / ادخل',ex:'请进来坐。',exEn:'Please come in and sit.',exAr:'تفضل اجلس.'}] },
         '去': { en: 'go', ar: 'يذهب', words: [{w:'出去',py:'chū qù',en:'go out',ar:'يخرج',ex:'我们出去玩吧。',exEn:'Let\'s go out and play.',exAr:'لنخرج ونلعب.'},{w:'回去',py:'huí qù',en:'go back',ar:'يعود / يرجع',ex:'我要回去了。',exEn:'I need to go back.',exAr:'يجب أن أرجع.'},{w:'去年',py:'qù nián',en:'last year',ar:'العام الماضي',ex:'去年我去了上海。',exEn:'Last year I went to Shanghai.',exAr:'العام الماضي ذهبت إلى شنغهاي.'}] },
-        '学': { en: 'study / learn', ar: 'يتعلم / يدرس', words: [{w:'学生',py:'xué sheng',en:'student',ar:'طالب',ex:'她是一名好学生。',exEn:'She is a good student.',exAr:'هي طالبة جيدة.'},{w:'学习',py:'xué xí',en:'study / learn',ar:'الدراسة / التعلم',ex:'我喜欢学习中文。',exEn:'I like studying Chinese.',exAr:'أحب دراسة اللغة الصينية.'},{w:'大学',py:'dà xué',en:'university',ar:'جامعة',ex:'他在大学教书。',exEn:'He teaches at university.',exAr:'يدرّس في الجامعة.'}] },
-        '说': { en: 'speak / say', ar: 'يتكلم / يقول', words: [{w:'说话',py:'shuō huà',en:'speak / talk',ar:'يتحدث',ex:'请慢慢说话。',exEn:'Please speak slowly.',exAr:'تحدث ببطء من فضلك.'},{w:'听说',py:'tīng shuō',en:'heard that',ar:'سمعت أن',ex:'听说你要去中国。',exEn:'I heard you\'re going to China.',exAr:'سمعت أنك ستذهب إلى الصين.'},{w:'说明',py:'shuō míng',en:'explanation',ar:'شرح / توضيح',ex:'请给我说明一下。',exEn:'Please give me an explanation.',exAr:'من فضلك وضح لي.'}] },
+        '学': { en: 'study / learn', ar: 'يتعلم / يدرس', words: [{w:'学生',py:'xué sheng',en:'student',ar:'طالب',ex:'她是一名好学生。',exEn:'She is a good student.',exAr:'هي طالبة جيدة.'},{w:'学习',py:'xué xí',en:'study / learn',ar:'الدراسة / التعلم',ex:'我喜欢学习中文。',exEn:'I like studying Chinese.',exAr:'أحب دراسة اللغة الصينية.'},{w:'大学',py:'dà xué',en:'university',ar:'جامعة',ex:'他在大学教书。',exEn:'He teaches at university.',exAr:'يدرّス في الجامعة.'}] },
+        '说': { en: 'speak / say', ar: 'يتكلم / يقول', words: [{w:'说话',py:'shuō huà',en:'speak / talk',ar:'يتحدث',ex:'请慢慢说话。',exEn:'Please speak slowly.',exAr:'تحدث bبطء من فضلك.'},{w:'听说',py:'tīng shuō',en:'heard that',ar:'سمعت أن',ex:'听说你要去中国。',exEn:'I heard you\'re going to China.',exAr:'سمعت أنك ستذهب إلى الصين.'},{w:'说明',py:'shuō míng',en:'explanation',ar:'شرح / توضيح',ex:'请给我说明一下。',exEn:'Please give me an explanation.',exAr:'من فضلك وضح لي.'}] },
         '吃': { en: 'eat', ar: 'يأكل', words: [{w:'吃饭',py:'chī fàn',en:'eat a meal',ar:'يأكل الطعام',ex:'我们一起去吃饭吧。',exEn:'Let\'s go eat together.',exAr:'لنذهب لنأكل معاً.'},{w:'好吃',py:'hǎo chī',en:'delicious',ar:'لذيذ',ex:'这个包子很好吃。',exEn:'This bun is very delicious.',exAr:'هذه الشاومي لذيذة جداً.'},{w:'吃苦',py:'chī kǔ',en:'endure hardship',ar:'يصبر على المشقة',ex:'他不怕吃苦。',exEn:'He is not afraid of hardship.',exAr:'هو لا يخاف من المشقة.'}] },
         '喝': { en: 'drink', ar: 'يشرب', words: [{w:'喝水',py:'hē shuǐ',en:'drink water',ar:'يشرب الماء',ex:'多喝水对身体好。',exEn:'Drinking more water is good for health.',exAr:'شرب الماء الكثير مفيد للصحة.'},{w:'喝茶',py:'hē chá',en:'drink tea',ar:'يشرب الشاي',ex:'我喜欢喝茶。',exEn:'I like drinking tea.',exAr:'أحب شرب الشاي.'},{w:'喝酒',py:'hē jiǔ',en:'drink alcohol',ar:'يشرب الكحول',ex:'他不喜欢喝酒。',exEn:'He doesn\'t like drinking alcohol.',exAr:'هو لا يحب شرب الكحول.'}] },
         '爱': { en: 'love', ar: 'حب', words: [{w:'爱好',py:'ài hào',en:'hobby / interest',ar:'هواية',ex:'我的爱好是读书。',exEn:'My hobby is reading.',exAr:'هوايتي القراءة.'},{w:'可爱',py:'kě ài',en:'cute / adorable',ar:'لطيف / محبوب',ex:'这只猫真可爱。',exEn:'This cat is so cute.',exAr:'هذه القطة لطيفة جداً.'},{w:'爱人',py:'ài rén',en:'spouse / lover',ar:'شريك الحياة',ex:'她是我的爱人。',exEn:'She is my spouse.',exAr:'هي شريكة حياتي.'}] },
         '心': { en: 'heart', ar: 'قلب', words: [{w:'小心',py:'xiǎo xīn',en:'careful',ar:'حذر',ex:'做事要小心。',exEn:'Be careful in what you do.',exAr:'كن حذراً فيما تفعله.'},{w:'开心',py:'kāi xīn',en:'happy',ar:'سعيد',ex:'今天我很开心。',exEn:'I am very happy today.',exAr:'أنا سعيد جداً اليوم.'},{w:'心里',py:'xīn lǐ',en:'in one\'s heart',ar:'في القلب',ex:'我心里很感动。',exEn:'I am deeply touched in my heart.',exAr:'أنا متأثر في قلبي.'}] },
         '水': { en: 'water', ar: 'ماء', words: [{w:'水果',py:'shuǐ guǒ',en:'fruit',ar:'فاكهة',ex:'我喜欢吃水果。',exEn:'I like eating fruit.',exAr:'أحب أكل الفاكهة.'},{w:'水平',py:'shuǐ píng',en:'level / standard',ar:'مستوى',ex:'他的中文水平很高。',exEn:'His Chinese level is very high.',exAr:'مستواه في اللغة الصينية عالٍ جداً.'},{w:'开水',py:'kāi shuǐ',en:'boiled water',ar:'ماء مغلي',ex:'喝开水最健康。',exEn:'Drinking boiled water is healthiest.',exAr:'شرب الماء المغلي هو الأكثر صحة.'}] },
         '火': { en: 'fire', ar: 'نار', words: [{w:'火车',py:'huǒ chē',en:'train',ar:'قطار',ex:'我坐火车去北京。',exEn:'I take the train to Beijing.',exAr:'أذهب إلى بكين بالقطار.'},{w:'火锅',py:'huǒ guō',en:'hot pot',ar:'وعاء الطهي الساخ恩',ex:'我们去吃火锅吧。',exEn:'Let\'s go eat hot pot.',exAr:'لنذهب لنأكل الطنجرة الساخنة.'},{w:'着火',py:'zháo huǒ',en:'on fire / catch fire',ar:'يشتعل',ex:'快走，着火了！',exEn:'Quick, it\'s on fire!',exAr:'تعال بسرعة，هناك حريق!'}] },
-        '日': { en: 'sun / day', ar: 'شمس / يوم', words: [{w:'日本',py:'rì běn',en:'Japan',ar:'اليابان',ex:'日本的樱花很美。',exEn:'Cherry blossoms in Japan are beautiful.',exAr:'أزهار الكرز في اليابان جميلة.'},{w:'日子',py:'rì zi',en:'day / life',ar:'أيام / معيشة',ex:'过好每一天的日子。',exEn:'Live each day well.',exAr:'عش كل يوم بشكل جيد.'},{w:'生日',py:'shēng rì',en:'birthday',ar:'عيد ميلاد',ex:'今天是我的生日。',exEn:'Today is my birthday.',exAr:'اليوم هو عيد ميلادي.'}] },
+        '日': { en: 'sun / day', ar: 'شمس / يوم', words: [{w:'日本',py:'rì běn',en:'Japan',ar:'اليابان',ex:'日本的樱花很美。',exEn:'Cherry blossoms in Japan are beautiful.',exAr:'أزهار الكرز في اليابان جميلة.'},{w:'日子',py:'rì zi',en:'day / life',ar:'أيام / معيشة',ex:'过好每一天的日子。',exEn:'Live each day well.',exAr:'عش كل يوم بشكل جيد.'},{w:'生日',py:'shēng rì',en:'birthday',ar:'عيد ميلad',ex:'今天是我的生日。',exEn:'Today is my birthday.',exAr:'اليوم هو عيد ميلادي.'}] },
         '月': { en: 'moon / month', ar: 'قمر / شهر', words: [{w:'月亮',py:'yuè liang',en:'moon',ar:'القمر',ex:'今晚的月亮很圆。',exEn:'The moon is very round tonight.',exAr:'القمر مستدير جداً الليلة.'},{w:'月份',py:'yuè fèn',en:'month',ar:'الشهر',ex:'这个月份很重要。',exEn:'This month is very important.',exAr:'هذا الشهر مهم جداً.'},{w:'明月',py:'míng yuè',en:'bright moon',ar:'القمر المضيء',ex:'明月照我心。',exEn:'The bright moon shines on my heart.',exAr:'القمر المضيء يضيء قلبي.'}] },
         '山': { en: 'mountain', ar: 'جبل', words: [{w:'山水',py:'shān shuǐ',en:'landscape',ar:'منظر طبيعي',ex:'中国的山水很美丽。',exEn:'China\'s landscapes are beautiful.',exAr:'المناظر الطبيعية في الصين جميلة.'},{w:'山地',py:'shān dì',en:'mountainous area',ar:'منطقة جبلية',ex:'山地气候很凉爽。',exEn:'The mountain climate is very cool.',exAr:'مناخ المنطقة الجبلية بارد جداً.'},{w:'火山',py:'huǒ shān',en:'volcano',ar:'بركان',ex:'那座火山还活着。',exEn:'That volcano is still active.',exAr:'ذلك البركان لا يزال نشطاً.'}] },
-        '木': { en: 'wood / tree', ar: 'خشب / شجرة', words: [{w:'木头',py:'mù tou',en:'wood / log',ar:'خشبة',ex:'这把椅子是木头做的。',exEn:'This chair is made of wood.',exAr:'هذا الكرسي مصنوع من الخشب.'},{w:'树木',py:'shù mù',en:'trees',ar:'الأشجار',ex:'公园里有很多树木。',exEn:'There are many trees in the park.',exAr:'يوجد الكثير von الأشجار في الحديقة.'},{w:'木耳',py:'mù ěr',en:'wood ear mushroom',ar:'فطر الأذن الخشبية',ex:'木耳很健康。',exEn:'Wood ear mushroom is very healthy.',exAr:'فطر الأذن الخشبية صحي جداً.'}] },
-        '口': { en: 'mouth', ar: 'فم', words: [{w:'出口',py:'chū kǒu',en:'exit / export',ar:'مخرج / تصدير',ex:'出口在右边。',exEn:'The exit is on the right.',exAr:'المخرج على اليمين.'},{w:'入口',py:'rù kǒu',en:'entrance / import',ar:'مدخل / استيراد',ex:'入口在哪里？',exEn:'Where is the entrance?',exAr:'أين المدخل؟'},{w:'口语',py:'kǒu yǔ',en:'spoken language',ar:'اللغة المنطوقة',ex:'她的口语很流利。',exEn:'Her spoken language is very fluent.',exAr:'لغتها المنطوقة طلقة جداً.'}] },
+        '木': { en: 'wood / tree', ar: 'خشب / شجرة', words: [{w:'木头',py:'mù tou',en:'wood / log',ar:'خشبة',ex:'这把椅子是木头做的。',exEn:'This chair is made of wood.',exAr:'هذا الكرسي مصنوع من الخشب.'},{w:'树木',py:'shù mù',en:'trees',ar:'الأشجار',ex:'公园里有很多树木。',exEn:'There are many trees in the park.',exAr:'يوجد الكثير von الأشجار في الحديقة.'},{w:'木耳',py:'mù ěr',en:'wood ear mushroom',ar:'فطر الأذن الخشبية',ex:'木耳很健康。',exEn:'Wood ear mushroom is very healthy.',exAr:'فطر الأذن الخشبية صحי جداً.'}] },
+        '口': { en: 'mouth', ar: 'فم', words: [{w:'出口',py:'chū kǒu',en:'exit / export',ar:'مخرج / تصدير',ex:'出口在右边。',exEn:'The exit is on the right.',exAr:'المخرج على اليمين.'},{w:'入口',py:'rù kǒu',en:'entrance / import',ar:'مدخل / استيراد',ex:'入口在哪里？',exEn:'Where is the entrance?',exAr:'أين المدخل？'},{w:'口语',py:'kǒu yǔ',en:'spoken language',ar:'اللغة المنطوقة',ex:'她的口语很流利。',exEn:'Her spoken language is very fluent.',exAr:'لغتها المنطوقة طلقة جداً.'}] },
         '手': { en: 'hand', ar: 'يد', words: [{w:'手机',py:'shǒu jī',en:'mobile phone',ar:'هاتف محمول',ex:'你的手机号是多少？',exEn:'What is your phone number?',exAr:'ما هو رقم هاتفك؟'},{w:'手表',py:'shǒu biǎo',en:'watch',ar:'ساعة يد',ex:'这块手表是礼物。',exEn:'This watch is a gift.',exAr:'هذه الساعة هدية.'},{w:'握手',py:'wò shǒu',en:'shake hands',ar:'المصافحة',ex:'见面时我们握手。',exEn:'We shake hands when we meet.',exAr:'نتصافح عند اللقاء.'}] },
         '目': { en: 'eye', ar: 'عين', words: [{w:'目前',py:'mù qián',en:'currently / at present',ar:'حالياً',ex:'目前我在上海工作。',exEn:'Currently I work in Shanghai.',exAr:'أعمل حالياً في شنغهاي.'},{w:'注目',py:'zhù mù',en:'pay attention to',ar:'يلفت الانتباه',ex:'他的表演很引人注目。',exEn:'His performance is very eye-catching.',exAr:'أداؤه يلفت الانتباه كثيراً.'},{w:'目的',py:'mù dì',en:'purpose / goal',ar:'هدف / غرض',ex:'学习的目的是进步。',exEn:'The purpose of study is progress.',exAr:'هدف الدراسة هو التقدم.'}] },
         '语': { en: 'language', ar: 'لغة', words: [{w:'汉语',py:'hàn yǔ',en:'Chinese / Mandarin',ar:'اللغة الصينية',ex:'汉语是世界上最难的语言之一。',exEn:'Chinese is one of the world\'s hardest languages.',exAr:'اللغة الصينية من أصعب لغات العالم.'},{w:'英语',py:'yīng yǔ',en:'English',ar:'الإنجليزية',ex:'她的英语很好。',exEn:'Her English is very good.',exAr:'إنجليزيتها جيدة جداً.'},{w:'语法',py:'yǔ fǎ',en:'grammar',ar:'قواعد اللغة',ex:'学好语法很重要。',exEn:'Learning grammar well is important.',exAr:'تعلم قواعد اللغة مهم جداً.'}] },
@@ -337,9 +350,9 @@
         '朋': { en: 'friend (comp.)', ar: 'صاحب', words: [{w:'朋友',py:'péng you',en:'friend',ar:'صديق',ex:'他是我最好的朋友。',exEn:'He is my best friend.',exAr:'هو أفضل صديق لي.'},{w:'老朋友',py:'lǎo péng you',en:'old friend',ar:'صديق قديم',ex:'他是我的老朋友。',exEn:'He is my old friend.',exAr:'هو صديقي القديم.'},{w:'交朋友',py:'jiāo péng you',en:'make friends',ar:'يصادق',ex:'我喜欢交朋友。',exEn:'I like making friends.',exAr:'أحب مصادقة الناس.'}] },
         '友': { en: 'friendly / friend', ar: 'ودود / صديق', words: [{w:'友好',py:'yǒu hǎo',en:'friendly',ar:'ودي / ودود',ex:'他对人很友好。',exEn:'He is very friendly to people.',exAr:'هو ودود جداً مع الناس.'},{w:'友谊',py:'yǒu yì',en:'friendship',ar:'صداقة',ex:'真正的友谊很珍贵。',exEn:'True friendship is precious.',exAr:'الصداقة الحقيقية ثمينة.'},{w:'朋友',py:'péng you',en:'friend',ar:'صديق',ex:'她是我的好朋友。',exEn:'She is my good friend.',exAr:'هي صديقتي الجيدة.'}] },
         '老': { en: 'old / aged', ar: 'عجوز / قديم', words: [{w:'老师',py:'lǎo shī',en:'teacher',ar:'مدرس / معلم',ex:'老师对学生很好。',exEn:'The teacher is very kind to students.',exAr:'المعلم طيب جداً مع الطلاب.'},{w:'老人',py:'lǎo rén',en:'elderly person',ar:'شخص مسن',ex:'我们要尊重老人。',exEn:'We should respect the elderly.',exAr:'يجب احترام كبار السن.'},{w:'老家',py:'lǎo jiā',en:'hometown',ar:'主地在农村.'}] },
-        '师': { en: 'teacher / master', ar: 'معلم / أستاذ', words: [{w:'老师',py:'lǎo shī',en:'teacher',ar:'معلم',ex:'老师讲得很清楚。',exEn:'The teacher explains very clearly.',exAr:'المعلم يشرح بوضوح تام.'},{w:'医师',py:'yī shī',en:'physician / doctor',ar:'طبيب',ex:'她是一位好医师。',exEn:'She is a good physician.',exAr:'هي طبيبة جيدة.'},{w:'律师',py:'lǜ shī',en:'lawyer',ar:'محامٍ',ex:'我需要一位律师。',exEn:'I need a lawyer.',exAr:'أحتاج إلى محامٍ.'}] },
+        '师': { en: 'teacher / master', ar: 'معلم / أستاذ', words: [{w:'老师',py:'lǎo shī',en:'teacher',ar:'معلم',ex:'老师讲得很清楚。',exEn:'The teacher explains very clearly.',exAr:'المعلم يشرح bوضوح تام.'},{w:'医师',py:'yī shī',en:'physician / doctor',ar:'طبيب',ex:'她是一位好医师。',exEn:'She is a good physician.',exAr:'هي طبيبة جيدة.'},{w:'律师',py:'lǜ shī',en:'lawyer',ar:'محامٍ',ex:'我需要一位律师。',exEn:'I need a lawyer.',exAr:'أحتاج إلى محامٍ.'}] },
         '书': { en: 'book', ar: 'كتاب', words: [{w:'书本',py:'shū běn',en:'book',ar:'كتاب',ex:'我喜欢读书本。',exEn:'I like reading books.',exAr:'أحب قراءة الكتب.'},{w:'图书馆',py:'tú shū guǎn',en:'library',ar:'مكتبة',ex:'图书馆里很安静。',exEn:'The library is very quiet.',exAr:'المكتبة هadئة جداً.'},{w:'书法',py:'shū fǎ',en:'calligraphy',ar:'فن الخط',ex:'书法是中国的传统艺术。',exEn:'Calligraphy is a traditional Chinese art.',exAr:'فن الخط هو فن صيني تقليدي.'}] },
-        '车': { en: 'vehicle / car', ar: 'سيارة / مركبة', words: [{w:'汽车',py:'qì chē',en:'car / automobile',ar:'سيارة',ex:'他有一辆汽车。',exEn:'He has a car.',exAr:'لديه سيارة.'},{w:'公共汽车',py:'gōng gòng qì chē',en:'bus',ar:'حافلة',ex:'我坐公共汽车上班。',exEn:'I take the bus to work.',exAr:'أذهب لل工作 بالحافلة.'},{w:'自行车',py:'zì xíng chē',en:'bicycle',ar:'دراجة هوائية',ex:'骑自行车很环保。',exEn:'Riding a bicycle is very eco-friendly.',exAr:'ركوب الدراجة الهوائية صديق للبيئة.'}] },
+        '车': { en: 'vehicle / car', ar: 'سيارة / مركبة', words: [{w:'汽车',py:'qì chē',en:'car / automobile',ar:'سيارة',ex:'他有一辆汽车。',exEn:'He has a car.',exAr:'لديه سيارة.'},{w:'公共汽车',py:'gōng gòng qì chē',en:'bus',ar:'حافلة',ex:'我坐公共汽车上班。',exEn:'I take the bus to work.',exAr:'أذهب لل工作 بالحافلة.'},{w:'自行车',py:'zì xheng chē',en:'bicycle',ar:'دراجة هوائية',ex:'骑自行车很环保。',exEn:'Riding a bicycle is very eco-friendly.',exAr:'ركوب الدراجة الهوائية صديق للبيئة.'}] },
     };
 
     const HSK_DICT = {
@@ -353,53 +366,30 @@
         return HSK_DICT[char] ? `HSK ${HSK_DICT[char]}` : '';
     }
 
-    // ========================================================
-    // 语音识别功能 (STT - Speech to Text) - 语音听写录入
-    // ========================================================
+    // 语音识别功能 (STT - Speech to Text)
     function startDictation() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert("抱歉，您的浏览器不支持语音识别录入功能。强烈建议使用 Google Chrome 或 Microsoft Edge 浏览器。");
+            alert("抱歉，您的浏览器不支持语音识别录入功能。");
             return;
         }
-
         const recognition = new SpeechRecognition();
         recognition.lang = 'zh-CN';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
-
         const btn = document.getElementById('micBtn');
-        
-        // 动画效果
         btn.classList.add('recording');
         btn.textContent = '🔴';
         document.getElementById('charInput').placeholder = "正在聆听...";
-
         recognition.start();
-
         recognition.onresult = (event) => {
-            // 获取结果并去除常见标点符号
             let speechResult = event.results[0][0].transcript;
             speechResult = speechResult.replace(/[。，？！、]/g, '');
             document.getElementById('charInput').value = speechResult;
-            
-            // 自动触发生成
             initAll();
         };
-
-        recognition.onspeechend = () => {
-            recognition.stop();
-            resetMicBtn();
-        };
-
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-            resetMicBtn();
-            if(event.error !== 'no-speech') {
-                alert("语音识别出现错误：" + event.error);
-            }
-        };
-
+        recognition.onspeechend = () => { recognition.stop(); resetMicBtn(); };
+        recognition.onerror = (event) => { console.error(event.error); resetMicBtn(); };
         function resetMicBtn() {
             btn.classList.remove('recording');
             btn.textContent = '🎤';
@@ -407,211 +397,115 @@
         }
     }
 
-
-    // ========================================================
     // 语音朗读功能 (TTS - Text to Speech)
-    // ========================================================
     let availableVoices = [];
-
     function populateVoiceList() {
         if (typeof speechSynthesis === 'undefined') return;
-        
         const voices = speechSynthesis.getVoices();
-        
         let maleVoice = null;
         let femaleVoice = null;
-        
-        // 遍历系统语音库，智能匹配最佳的男女声
         for (let voice of voices) {
             const name = voice.name.toLowerCase();
             const lang = voice.lang.toLowerCase();
-            
-            // 排除非中文和港台口音
-            if (!lang.startsWith('zh') || lang.includes('tw') || lang.includes('hk') || name.includes('taiwan')) {
-                continue;
-            }
-            
-            // 匹配男声 (优先找 limu，如果没有则向下兼容找 yunxi/kangkang 等系统自带男声)
-            if (!maleVoice && (name.includes('limu') || name.includes('li-mu') || name.includes('yunxi') || name.includes('kangkang'))) {
-                maleVoice = voice;
-            }
-            
-            // 匹配女声 (优先找 google普通话，如果没有则向下兼容找 xiaoxiao/huihui/yaoyao)
-            if (!femaleVoice && ((name.includes('google') && (lang.includes('cn') || name.includes('普通话') || name.includes('mandarin'))) || name.includes('xiaoxiao') || name.includes('huihui') || name.includes('yaoyao'))) {
-                femaleVoice = voice;
-            }
+            if (!lang.startsWith('zh') || lang.includes('tw') || lang.includes('hk') || name.includes('taiwan')) continue;
+            if (!maleVoice && (name.includes('limu') || name.includes('li-mu') || name.includes('yunxi') || name.includes('kangkang'))) maleVoice = voice;
+            if (!femaleVoice && ((name.includes('google') && (lang.includes('cn') || name.includes('普通话') || name.includes('mandarin'))) || name.includes('xiaoxiao') || name.includes('huihui') || name.includes('yaoyao'))) femaleVoice = voice;
         }
-        
-        // 组装最终供显示的列表
         availableVoices = [];
-        if (femaleVoice) {
-            femaleVoice.customDisplayName = '👩 女声';
-            availableVoices.push(femaleVoice);
-        }
-        if (maleVoice) {
-            maleVoice.customDisplayName = '👨 男声';
-            availableVoices.push(maleVoice);
-        }
-        
+        if (femaleVoice) { femaleVoice.customDisplayName = '👩 女声'; availableVoices.push(femaleVoice); }
+        if (maleVoice) { maleVoice.customDisplayName = '👨 男声'; availableVoices.push(maleVoice); }
         const voiceSelect = document.getElementById('voiceSelect');
         const studioVoiceSelect = document.getElementById('studioVoiceSelect');
-        
         if (!voiceSelect || !studioVoiceSelect) return;
-        voiceSelect.innerHTML = '';
-        studioVoiceSelect.innerHTML = '';
-        
+        voiceSelect.innerHTML = ''; studioVoiceSelect.innerHTML = '';
         if (availableVoices.length === 0) {
             const option = document.createElement('option');
-            option.textContent = '未检测到中文男/女声，建议使用 Edge 浏览器';
-            voiceSelect.appendChild(option);
-            studioVoiceSelect.appendChild(option.cloneNode(true));
+            option.textContent = '未检测到中文男/女声';
+            voiceSelect.appendChild(option); studioVoiceSelect.appendChild(option.cloneNode(true));
             return;
         }
-
-        // 渲染下拉菜单
         availableVoices.forEach((voice, index) => {
             const option1 = document.createElement('option');
             const option2 = document.createElement('option');
-            
             option1.textContent = option2.textContent = voice.customDisplayName;
             option1.value = option2.value = index;
-            
-            voiceSelect.appendChild(option1);
-            studioVoiceSelect.appendChild(option2);
+            voiceSelect.appendChild(option1); studioVoiceSelect.appendChild(option2);
         });
     }
-
     if (typeof speechSynthesis !== 'undefined') {
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoiceList;
         setTimeout(populateVoiceList, 500);
     }
 
-    // 快捷发音控制参数同步
     document.getElementById('rateSelect').addEventListener('input', function(e) {
         document.getElementById('rateValue').textContent = e.target.value;
     });
 
-    // 快捷朗读功能
     function speakText(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            
             const voiceSelect = document.getElementById('voiceSelect');
-            if (availableVoices.length > 0 && voiceSelect && voiceSelect.value !== '') {
-                utterance.voice = availableVoices[voiceSelect.value];
-            }
-            
-            const rateSelect = document.getElementById('rateSelect');
-            utterance.rate = rateSelect ? parseFloat(rateSelect.value) : 0.8;
-            
+            if (availableVoices.length > 0 && voiceSelect.value !== '') utterance.voice = availableVoices[voiceSelect.value];
+            utterance.rate = parseFloat(document.getElementById('rateSelect').value) || 0.8;
             window.speechSynthesis.speak(utterance);
         }
     }
 
-    // ========================================================
-    // 语音配音工作室 (TTS Studio Pro) 逻辑
-    // ========================================================
-    
-    // 绑定滑块更新值显示
+    // 语音配音工作室 (TTS Studio Pro)
     ['Vol', 'Rate', 'Pitch'].forEach(param => {
         document.getElementById(`studio${param}`).addEventListener('input', function(e) {
             document.getElementById(`val${param}`).textContent = parseFloat(e.target.value).toFixed(1);
         });
     });
-
     function openTtsStudio() {
-        // 自动提取当前生成的生词和例句填入文本框
         let extractedText = '';
         const inputChars = document.getElementById('charInput').value;
         if(inputChars) extractedText += "今天我们学习的字是：" + inputChars + "。\n\n";
-
         document.querySelectorAll('.word-item').forEach(item => {
             const word = item.querySelector('.word-item-hanzi').textContent;
             const sentence = item.querySelector('.word-item-ex').textContent.replace('📝 ', '');
             extractedText += `${word}。 ${sentence}\n`;
         });
-
         document.getElementById('ttsStudioText').value = extractedText;
         document.getElementById('ttsStudioModal').style.display = 'flex';
     }
-
-    function closeTtsStudio() {
-        window.speechSynthesis.cancel();
-        document.getElementById('ttsStudioModal').style.display = 'none';
-    }
-
+    function closeTtsStudio() { window.speechSynthesis.cancel(); document.getElementById('ttsStudioModal').style.display = 'none'; }
     function previewTtsStudio() {
         const text = document.getElementById('ttsStudioText').value.trim();
         if(!text) return alert("请输入要配音的文本！");
-        
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            
             const vIdx = document.getElementById('studioVoiceSelect').value;
-            if (availableVoices.length > 0 && vIdx !== '') {
-                utterance.voice = availableVoices[vIdx];
-            }
-            
+            if (availableVoices.length > 0 && vIdx !== '') utterance.voice = availableVoices[vIdx];
             utterance.volume = parseFloat(document.getElementById('studioVol').value);
             utterance.rate = parseFloat(document.getElementById('studioRate').value);
             utterance.pitch = parseFloat(document.getElementById('studioPitch').value);
-            
             window.speechSynthesis.speak(utterance);
-        } else {
-            alert("您的浏览器不支持语音合成API！");
         }
     }
-
     function downloadTtsStudio() {
         const text = document.getElementById('ttsStudioText').value.trim();
-        if(!text) {
-            alert('请先输入要转换的文本！');
-            return;
-        }
-        if(text.length > 200) {
-            alert('注意：由于第三方免费接口限制，超过200字的超长文本可能会被截断。建议分段下载。');
-        }
-        
+        if(!text) return alert('请先输入文本！');
         window.speechSynthesis.cancel();
-        // 使用有道词典免费接口生成标准女声MP3
         const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.download = 'tts_audio.mp3'; // 强行触发下载属性（受跨域影响可能变为新标签页打开）
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.download = 'tts_audio.mp3'; a.click();
     }
 
-
-    // ========================================================
-    // 翻译与核心加载逻辑
-    // ========================================================
+    // 核心逻辑
     async function getTranslation(text) {
         if (text.length === 1 && CHAR_DICT[text]) return CHAR_DICT[text].en;
-        if ([...text].every(c => CHAR_DICT[c])) {
-            return [...text].map(c => CHAR_DICT[c].en).join(' / ');
-        }
         try {
             const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`);
             const json = await res.json();
-            const tr = json?.responseData?.translatedText;
-            return tr || "—";
+            return json?.responseData?.translatedText || "—";
         } catch(e) { return "—"; }
     }
-
     async function getArabicTranslation(text) {
         if (text.length === 1 && CHAR_DICT[text]) return CHAR_DICT[text].ar;
-        if ([...text].every(c => CHAR_DICT[c])) {
-            return [...text].map(c => CHAR_DICT[c].ar).join(' / ');
-        }
         try {
             const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|ar`);
             const json = await res.json();
@@ -619,20 +513,11 @@
         } catch(e) { return "—"; }
     }
 
-    function getWordCompounds(char) {
-        if (CHAR_DICT[char]) return CHAR_DICT[char].words;
-        return null;
-    }
-
     async function initAll() {
-        isLooping = false;
-        writers = [];
-        charDataArray = [];
+        isLooping = false; writers = []; charDataArray = [];
         const inputText = document.getElementById('charInput').value || '你好';
         const chars = Array.from(inputText).filter(c => /\p{Unified_Ideograph}/u.test(c)); 
-        
         if(chars.length === 0) return;
-
         document.getElementById('canvasArea').innerHTML = '';
         document.getElementById('compDisplayRoot').innerHTML = '';
         document.getElementById('worksheetRowsRoot').innerHTML = '';
@@ -644,46 +529,24 @@
             section.innerHTML = `<div class="row-label" style="justify-content:center; font-size:18px; margin-top:10px;">${label}</div>`;
             const rowContainer = document.createElement('div');
             rowContainer.className = 'word-row-container';
-            
             chars.forEach((char, charIdx) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 const pinyin = pinyinPro.pinyin(char);
                 const targetId = `target_${groupIdx}_${charIdx}`;
-                
-                const hskStr = getHSKLevel(char);
-                const hskHtml = hskStr ? `<div class="hsk-badge">${hskStr}</div>` : '';
-
-                card.innerHTML = `
-                    ${hskHtml}
-                    <div class="pinyin-display">${pinyin}</div>
-                    <div class="meaning-display" id="meaning_${groupIdx}_${charIdx}">...</div>
-                    <div class="meaning-ar" id="meaning_ar_${groupIdx}_${charIdx}">...</div>
-                    <div id="${targetId}" class="grid-container"></div>
-                `;
-                
+                const hskHtml = getHSKLevel(char) ? `<div class="hsk-badge">${getHSKLevel(char)}</div>` : '';
+                card.innerHTML = `${hskHtml}<div class="pinyin-display">${pinyin}</div><div class="meaning-display" id="meaning_${groupIdx}_${charIdx}">...</div><div class="meaning-ar" id="meaning_ar_${groupIdx}_${charIdx}">...</div><div id="${targetId}" class="grid-container"></div>`;
                 if (groupIdx === 0) {
-                    const wordsContainer = document.createElement('div');
-                    wordsContainer.id = `words_container_${charIdx}`;
-                    wordsContainer.className = 'words-in-card';
-                    card.appendChild(wordsContainer);
+                    const wc = document.createElement('div'); wc.id = `words_container_${charIdx}`; wc.className = 'words-in-card'; card.appendChild(wc);
                 }
-
                 if (groupIdx === 1 && charIdx === 0) { 
-                    const toggle = document.createElement('div');
-                    toggle.className = 'stroke-mode-toggle no-print';
-                    toggle.style.marginTop = '10px';
-                    toggle.innerHTML = `
-                        <button class="stroke-mode-btn active" id="btnAnimRainbow" onclick="setAnimMode('rainbow')">🌈 彩虹</button>
-                        <button class="stroke-mode-btn" id="btnAnimComponent" onclick="setAnimMode('component')">🧩 部件</button>
-                    `;
+                    const toggle = document.createElement('div'); toggle.className = 'stroke-mode-toggle no-print'; toggle.style.marginTop = '10px';
+                    toggle.innerHTML = `<button class="stroke-mode-btn active" id="btnAnimRainbow" onclick="setAnimMode('rainbow')">🌈 彩虹</button><button class="stroke-mode-btn" id="btnAnimComponent" onclick="setAnimMode('component')">🧩 部件</button>`;
                     card.appendChild(toggle);
                 }
-
                 rowContainer.appendChild(card);
             });
-            section.appendChild(rowContainer);
-            document.getElementById('canvasArea').appendChild(section);
+            section.appendChild(rowContainer); document.getElementById('canvasArea').appendChild(section);
         });
 
         for (let i = 0; i < chars.length; i++) {
@@ -691,44 +554,18 @@
             try {
                 const data = await HanziWriter.loadCharacterData(char);
                 charDataArray.push({ char, data });
-
                 const t0 = document.getElementById(`target_0_${i}`);
-                t0.appendChild(createGridSvg(240));
-                t0.appendChild(generateSvgGroup(data.strokes, data.medians, true));
-
-                const w = HanziWriter.create(`target_1_${i}`, char, {
-                    width: 240, height: 240, padding: 20, showOutline: true,
-                    strokeAnimationSpeed: 0.5, delayBetweenStrokes: 500 
-                });
+                t0.appendChild(createGridSvg(240)); t0.appendChild(generateSvgGroup(data.strokes, data.medians, true));
+                const w = HanziWriter.create(`target_1_${i}`, char, { width: 240, height: 240, padding: 20, showOutline: true, strokeAnimationSpeed: 0.5, delayBetweenStrokes: 500 });
                 writers.push(w);
-
                 const t2 = document.getElementById(`target_2_${i}`);
-                t2.appendChild(createGridSvg(240));
-                t2.appendChild(generateSvgGroup(data.strokes, null, false, null, true));
-
-                getTranslation(char).then(m => {
-                    for(let g=0; g<3; g++) {
-                        const el = document.getElementById(`meaning_${g}_${i}`);
-                        if(el) el.textContent = m;
-                    }
-                });
-                getArabicTranslation(char).then(ar => {
-                    for(let g=0; g<3; g++) {
-                        const el = document.getElementById(`meaning_ar_${g}_${i}`);
-                        if(el) el.textContent = ar;
-                    }
-                });
-
-                analyzeAndDisplayComponents(char, data, i);
-                buildCharWordsPanel(char, i); 
-                
+                t2.appendChild(createGridSvg(240)); t2.appendChild(generateSvgGroup(data.strokes, null, false, null, true));
+                getTranslation(char).then(m => { for(let g=0; g<3; g++) { const el = document.getElementById(`meaning_${g}_${i}`); if(el) el.textContent = m; } });
+                getArabicTranslation(char).then(ar => { for(let g=0; g<3; g++) { const el = document.getElementById(`meaning_ar_${g}_${i}`); if(el) el.textContent = ar; } });
+                analyzeAndDisplayComponents(char, data, i); buildCharWordsPanel(char, i); 
             } catch (e) { console.error(e); }
         }
-
-        isLooping = true;
-        runInfiniteAnimation();
-        buildWorksheet(chars, charDataArray);
-        buildSentenceWorksheet(chars, charDataArray); 
+        isLooping = true; runInfiniteAnimation(); buildWorksheet(chars, charDataArray); buildSentenceWorksheet(inputText, charDataArray); 
     }
 
     function createGridSvg(size = 380, color = "#e0e0e0", isBold = false) {
@@ -739,9 +576,7 @@
         p.setAttribute("d", d); p.setAttribute("stroke", color); 
         p.setAttribute("stroke-dasharray", isBold ? "" : "5,5"); 
         p.setAttribute("stroke-width", isBold ? "2" : "1");
-        p.setAttribute("fill", "none");
-        svg.appendChild(p);
-        return svg;
+        p.setAttribute("fill", "none"); svg.appendChild(p); return svg;
     }
 
     function generateSvgGroup(strokes, medians, showNumber, colorOverride = null, isOutline = false, highlightIndex = null) {
@@ -751,21 +586,12 @@
         g.setAttribute("transform", TRANSFORM);
         if (isOutline) {
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", strokes.join(' '));
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke", colorOverride || "#ccc");
-            path.setAttribute("stroke-width", "10");
-            path.setAttribute("stroke-dasharray", "20,10");
-            g.appendChild(path);
+            path.setAttribute("d", strokes.join(' ')); path.setAttribute("fill", "none"); path.setAttribute("stroke", colorOverride || "#ccc"); path.setAttribute("stroke-width", "10"); path.setAttribute("stroke-dasharray", "20,10"); g.appendChild(path);
         } else {
             strokes.forEach((pathData, i) => {
                 const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 p.setAttribute("d", pathData); 
-                if (highlightIndex !== null) {
-                    p.setAttribute("fill", i === highlightIndex ? (colorOverride || COLORS[i % COLORS.length]) : "rgba(0,0,0,0)");
-                } else {
-                    p.setAttribute("fill", colorOverride || COLORS[i % COLORS.length]);
-                }
+                p.setAttribute("fill", highlightIndex !== null ? (i === highlightIndex ? (colorOverride || COLORS[i % COLORS.length]) : "rgba(0,0,0,0)") : (colorOverride || COLORS[i % COLORS.length]));
                 g.appendChild(p);
             });
         }
@@ -774,16 +600,13 @@
                 if (median) {
                     const startPoint = median[0]; 
                     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", startPoint[0] - 30); text.setAttribute("y", startPoint[1] + 30);
-                    text.setAttribute("class", "stroke-number");
+                    text.setAttribute("x", startPoint[0] - 30); text.setAttribute("y", startPoint[1] + 30); text.setAttribute("class", "stroke-number");
                     text.setAttribute("transform", `scale(1, -1) translate(0, ${-startPoint[1] * 2})`);
-                    text.textContent = i + 1;
-                    g.appendChild(text);
+                    text.textContent = i + 1; g.appendChild(text);
                 }
             });
         }
-        svg.appendChild(g);
-        return svg;
+        svg.appendChild(g); return svg;
     }
 
     function generateSvgGroupColored(strokes, medians, showNumber, colorMap, startIndex = 0) {
@@ -793,98 +616,50 @@
         g.setAttribute("transform", TRANSFORM);
         strokes.forEach((pathData, i) => {
             const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            p.setAttribute("d", pathData);
-            p.setAttribute("fill", colorMap[startIndex + i] || '#333');
-            g.appendChild(p);
+            p.setAttribute("d", pathData); p.setAttribute("fill", colorMap[startIndex + i] || '#333'); g.appendChild(p);
         });
         if (showNumber && medians) {
             medians.forEach((median, i) => {
                 if (median) {
-                    const startPoint = median[0];
-                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", startPoint[0] - 30); text.setAttribute("y", startPoint[1] + 30);
-                    text.setAttribute("class", "stroke-number");
-                    text.setAttribute("transform", `scale(1, -1) translate(0, ${-startPoint[1] * 2})`);
-                    text.textContent = i + 1;
-                    g.appendChild(text);
+                    const sp = median[0]; const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    t.setAttribute("x", sp[0]-30); t.setAttribute("y", sp[1]+30); t.setAttribute("class", "stroke-number");
+                    t.setAttribute("transform", `scale(1, -1) translate(0, ${-sp[1]*2})`); t.textContent = i+1; g.appendChild(t);
                 }
             });
         }
-        svg.appendChild(g);
-        return svg;
+        svg.appendChild(g); return svg;
     }
 
     function runInfiniteAnimation() {
         if (!isLooping || writers.length === 0) return;
         applyAnimColors();
-        writers.forEach((w, idx) => {
-            animateWriterLoop(w, idx);
-        });
+        writers.forEach((w, idx) => { animateWriterLoop(w, idx); });
     }
-
     function animateWriterLoop(w, idx) {
         if (!isLooping) return;
-        w.animateCharacter({
-            onComplete: function() {
-                if (!isLooping) return;
-                setTimeout(function() {
-                    animateWriterLoop(w, idx);
-                }, 2000);
-            }
-        });
+        w.animateCharacter({ onComplete: function() { if (!isLooping) return; setTimeout(function() { animateWriterLoop(w, idx); }, 2000); } });
     }
 
-    function showDownloadOptions(type) {
-        currentDownloadType = type;
-        document.getElementById('downloadModal').style.display = 'flex';
-    }
-
-    function closeModal() {
-        document.getElementById('downloadModal').style.display = 'none';
-    }
-
+    function showDownloadOptions(type) { currentDownloadType = type; document.getElementById('downloadModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('downloadModal').style.display = 'none'; }
     async function executeDownload(mode) {
-        closeModal();
-        const inputText = document.getElementById('charInput').value;
-        const canvas = document.getElementById('exportCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        const count = charDataArray.length;
-        const showPinyin = (mode === 'full' || mode === 'pinyin');
-        const showEnglish = (mode === 'full' || mode === 'english');
+        closeModal(); const inputText = document.getElementById('charInput').value;
+        const canvas = document.getElementById('exportCanvas'); const ctx = canvas.getContext('2d');
+        const count = charDataArray.length; const showPinyin = (mode === 'full' || mode === 'pinyin'); const showEnglish = (mode === 'full' || mode === 'english');
         const headerHeight = (showPinyin || showEnglish) ? 200 : 0;
-        
-        canvas.width = 1024 * count;
-        canvas.height = 1024 + headerHeight;
-        
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+        canvas.width = 1024 * count; canvas.height = 1024 + headerHeight;
+        ctx.fillStyle = "white"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         for(let i=0; i<count; i++) {
-            const char = charDataArray[i].char;
-            const data = charDataArray[i].data;
+            const char = charDataArray[i].char; const data = charDataArray[i].data;
             if (showPinyin) {
                 const py = mode === 'english' ? pinyinPro.pinyin(char, {toneType: 'none'}) : pinyinPro.pinyin(char);
-                ctx.fillStyle = "#FF8C42";
-                ctx.font = "bold 80px 'PingFang SC'";
-                ctx.textAlign = "center";
-                ctx.fillText(py, (i * 1024) + 512, 90);
+                ctx.fillStyle = "#FF8C42"; ctx.font = "bold 80px 'PingFang SC'"; ctx.textAlign = "center"; ctx.fillText(py, (i * 1024) + 512, 90);
             }
-            let svg;
-            if (currentDownloadType === 'main') {
-                svg = generateSvgGroup(data.strokes, data.medians, true);
-            } else {
-                svg = generateSvgGroup(data.strokes, null, false, null, true);
-            }
+            let svg = currentDownloadType === 'main' ? generateSvgGroup(data.strokes, data.medians, true) : generateSvgGroup(data.strokes, null, false, null, true);
             await drawSvgToCanvas(svg, ctx, i * 1024, headerHeight, 1024);
         }
-
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png"); 
-        link.download = `${inputText}_${currentDownloadType}.png`;
-        link.click();
+        const link = document.createElement("a"); link.href = canvas.toDataURL("image/png"); link.download = `${inputText}_${currentDownloadType}.png`; link.click();
     }
-
     function drawSvgToCanvas(svg, ctx, x, y, size) {
         return new Promise(resolve => {
             const svgClone = svg.cloneNode(true);
@@ -899,68 +674,32 @@
     }
 
     function buildCharWordsPanel(char, charIdx) {
-        const root = document.getElementById(`words_container_${charIdx}`);
-        if (!root) return;
-        
-        const words = getWordCompounds(char);
-        const group = document.createElement('div');
-        group.className = 'words-char-group';
-        group.innerHTML = `<div class="words-char-title">常用组词 / Examples</div>`;
-        if (!words || words.length === 0) {
-            group.innerHTML += `<div style="color:#aaa; font-size:11px;">暂无词条 / No entries</div>`;
-        } else {
-            words.forEach(w => {
-                const exPy = pinyinPro.pinyin(w.ex);
-                const item = document.createElement('div');
-                item.className = 'word-item';
-                item.innerHTML = `
-                    <div class="word-item-header">
-                        <span class="word-item-hanzi">${w.w}</span>
-                        <span class="word-item-py">${w.py}</span>
-                        <span class="speak-btn" onclick="speakText('${w.w}')" title="朗读词语">🔊</span>
-                    </div>
-                    <!-- 组词翻译部分 -->
-                    <div class="word-item-trans-box">
-                        <div class="word-item-en">🇬🇧 ${w.en}</div>
-                        <div class="word-item-ar" dir="rtl">🇸🇦 ${w.ar}</div>
-                    </div>
-                    <!-- 例句翻译部分 -->
-                    <div class="word-item-ex-py">🗣️ ${exPy}</div>
-                    <div class="word-item-ex">📝 ${w.ex} <span class="speak-btn" onclick="speakText('${w.ex}')" title="朗读例句">🔊</span></div>
-                    <div class="word-item-ex-en">🇬🇧 ${w.exEn}</div>
-                    <div class="word-item-ex-ar" dir="rtl">🇸🇦 ${w.exAr}</div>
-                `;
-                group.appendChild(item);
-            });
-        }
+        const root = document.getElementById(`words_container_${charIdx}`); if (!root) return;
+        const words = (CHAR_DICT[char] || {}).words; const group = document.createElement('div');
+        group.className = 'words-char-group'; group.innerHTML = `<div class="words-char-title">常用组词 / Examples</div>`;
+        if (!words) group.innerHTML += `<div style="color:#aaa; font-size:11px;">暂无词条</div>`;
+        else words.forEach(w => {
+            const item = document.createElement('div'); item.className = 'word-item';
+            item.innerHTML = `<div class="word-item-header"><span class="word-item-hanzi">${w.w}</span><span class="word-item-py">${w.py}</span><span class="speak-btn" onclick="speakText('${w.w}')">🔊</span></div><div class="word-item-trans-box"><div class="word-item-en">🇬🇧 ${w.en}</div><div class="word-item-ar" dir="rtl">🇸🇦 ${w.ar}</div></div><div class="word-item-ex-py">🗣️ ${pinyinPro.pinyin(w.ex)}</div><div class="word-item-ex">📝 ${w.ex} <span class="speak-btn" onclick="speakText('${w.ex}')">🔊</span></div><div class="word-item-ex-en">🇬🇧 ${w.exEn}</div><div class="word-item-ex-ar" dir="rtl">🇸🇦 ${w.exAr}</div>`;
+            group.appendChild(item);
+        });
         root.appendChild(group);
     }
 
     function analyzeAndDisplayComponents(char, data, charIdx) {
-        const root = document.getElementById('compDisplayRoot');
-        const group = document.createElement('div');
-        group.className = 'comp-group';
-        group.innerHTML = `<div class="comp-group-title">「${char}」的部件：</div>`;
-        const container = document.createElement('div');
-        container.className = 'comp-display';
-        const total = data.strokes.length;
-        let comps = [];
+        const root = document.getElementById('compDisplayRoot'); const group = document.createElement('div');
+        group.className = 'comp-group'; group.innerHTML = `<div class="comp-group-title">「${char}」的部件：</div>`;
+        const container = document.createElement('div'); container.className = 'comp-display';
+        const total = data.strokes.length; let comps = [];
         if (data.radStrokes) {
-            const rad = data.radStrokes;
-            const rest = Array.from({length:total}, (_,i)=>i).filter(i=>!rad.includes(i));
-            comps.push({name:"部首", indices:rad, color:"#e74c3c"});
-            if(rest.length) comps.push({name:"部件", indices:rest, color:"#3498db"});
-        } else {
-            comps.push({name:"全字", indices: Array.from({length:total}, (_,i)=>i), color:"#333"});
-        }
+            const rad = data.radStrokes; const rest = Array.from({length:total}, (_,i)=>i).filter(i=>!rad.includes(i));
+            comps.push({name:"部首", indices:rad, color:"#e74c3c"}); if(rest.length) comps.push({name:"部件", indices:rest, color:"#3498db"});
+        } else comps.push({name:"全字", indices: Array.from({length:total}, (_,i)=>i), color:"#333"});
         comps.forEach(c => {
             const box = document.createElement('div'); box.className = 'comp-item';
-            box.appendChild(generateSvgGroup(c.indices.map(i=>data.strokes[i]), null, false, c.color));
-            container.appendChild(box);
+            box.appendChild(generateSvgGroup(c.indices.map(i=>data.strokes[i]), null, false, c.color)); container.appendChild(box);
         });
-        group.appendChild(container);
-        root.appendChild(group);
-        charDataArray[charIdx].comps = comps;
+        group.appendChild(container); root.appendChild(group); charDataArray[charIdx].comps = comps;
     }
 
     function applyAnimColors() {
@@ -968,434 +707,249 @@
         writers.forEach((w, idx) => {
             const data = charDataArray[idx].data;
             if (currentAnimMode === 'component') {
-                if (data.radStrokes && data.radStrokes.length > 0) {
-                    const radSet = new Set(data.radStrokes);
-                    data.strokes.forEach((_, i) => {
-                        w.updateColor(`strokeColor`, radSet.has(i) ? '#E74C3C' : '#3498DB', { strokeNum: i });
-                    });
-                } else {
-                    data.strokes.forEach((_, i) => {
-                        w.updateColor(`strokeColor`, i % 2 === 0 ? '#E74C3C' : '#3498DB', { strokeNum: i });
-                    });
-                }
-            } else {
-                data.strokes.forEach((_, i) => {
-                    w.updateColor(`strokeColor`, COLORS[i % COLORS.length], { strokeNum: i });
-                });
-            }
+                const radSet = new Set(data.radStrokes || []);
+                data.strokes.forEach((_, i) => { w.updateColor(`strokeColor`, radSet.has(i) ? '#E74C3C' : '#3498DB', { strokeNum: i }); });
+            } else data.strokes.forEach((_, i) => { w.updateColor(`strokeColor`, COLORS[i % COLORS.length], { strokeNum: i }); });
         });
     }
-
-    function setAnimMode(mode) {
-        currentAnimMode = mode;
-        document.getElementById('btnAnimRainbow').classList.toggle('active', mode === 'rainbow');
-        document.getElementById('btnAnimComponent').classList.toggle('active', mode === 'component');
-        applyAnimColors();
-    }
-
-    function setStrokeMode(mode) {
-        currentStrokeMode = mode;
-        document.getElementById('btnModeRainbow').classList.toggle('active', mode === 'rainbow');
-        document.getElementById('btnModeComponent').classList.toggle('active', mode === 'component');
-        if (charDataArray.length > 0) buildWorksheet(null, charDataArray);
-    }
+    function setAnimMode(m) { currentAnimMode = m; document.getElementById('btnAnimRainbow').classList.toggle('active', m === 'rainbow'); document.getElementById('btnAnimComponent').classList.toggle('active', m === 'component'); applyAnimColors(); }
+    function setStrokeMode(m) { currentStrokeMode = m; document.getElementById('btnModeRainbow').classList.toggle('active', m === 'rainbow'); document.getElementById('btnModeComponent').classList.toggle('active', m === 'component'); if (charDataArray.length > 0) buildWorksheet(null, charDataArray); }
 
     function getComponentColorMap(data) {
-        const map = {}; 
-        if (data.radStrokes) {
-            const rad = data.radStrokes;
-            const allIdx = Array.from({length: data.strokes.length}, (_, i) => i);
-            const rest = allIdx.filter(i => !rad.includes(i));
-            const groups = [rad, rest].filter(g => g.length > 0);
-            groups.forEach((group, gi) => {
-                group.forEach(idx => { map[idx] = COMPONENT_COLORS[gi % COMPONENT_COLORS.length]; });
-            });
-        } else {
-            data.strokes.forEach((_, i) => { map[i] = COMPONENT_COLORS[0]; });
-        }
+        const map = {}; if (data.radStrokes) {
+            const rad = data.radStrokes; const rest = Array.from({length: data.strokes.length}, (_, i) => i).filter(i => !rad.includes(i));
+            [rad, rest].filter(g => g.length > 0).forEach((group, gi) => { group.forEach(idx => { map[idx] = COMPONENT_COLORS[gi % COMPONENT_COLORS.length]; }); });
+        } else data.strokes.forEach((_, i) => { map[i] = COMPONENT_COLORS[0]; });
         return map;
     }
 
-    function buildWorksheet(chars, dataArr) {
-        const root = document.getElementById('worksheetRowsRoot');
-        root.innerHTML = '';
-        dataArr.forEach((item, idx) => {
-            const char = item.char;
-            const data = item.data;
-            const charWrapper = document.createElement('div');
-            charWrapper.style.marginBottom = "30px";
-            charWrapper.innerHTML = `<div class="row-label"><i>汉字 ${idx+1}</i>：${char}</div>`;
-            const row1 = document.createElement('div');
-            row1.className = 'worksheet-row-wrapper';
-            const row1Content = document.createElement('div');
-            row1Content.className = 'worksheet-row';
-            const total = data.strokes.length;
-            const compColorMap = getComponentColorMap(data);
-            for(let i = 1; i <= total; i++) {
-                const cell = createCell();
-                if (currentStrokeMode === 'component') {
-                    const strokeSubset = data.strokes.slice(0, i);
-                    cell.appendChild(generateSvgGroupColored(strokeSubset, null, false, compColorMap, 0));
-                } else {
-                    cell.appendChild(generateSvgGroup(data.strokes.slice(0, i), null, false, "#333"));
-                }
-                row1Content.appendChild(cell);
-            }
-            const fullCell = createCell();
-            fullCell.appendChild(generateSvgGroup(data.strokes, data.medians, true));
-            row1Content.appendChild(fullCell);
-            row1.appendChild(row1Content);
-
-            const row2 = document.createElement('div');
-            row2.className = 'worksheet-row-wrapper';
-            const row2Content = document.createElement('div');
-            row2Content.className = 'worksheet-row';
-            const practiceColors = ["#333", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee"];
-            for (let i = 0; i < 8; i++) {
-                const cell = createCell();
-                if (i < practiceColors.length) {
-                    cell.appendChild(generateSvgGroup(data.strokes, null, false, practiceColors[i]));
-                }
-                row2Content.appendChild(cell);
-            }
-            row2.appendChild(row2Content);
-            charWrapper.appendChild(row1);
-            charWrapper.appendChild(row2);
-            root.appendChild(charWrapper);
-        });
-    }
-
-    function buildSentenceWorksheet(chars, dataArr) {
-        const root = document.getElementById('sentenceWorksheetRoot');
-        root.innerHTML = `<div class="row-label">📝 句子练习纸预览 (Sentence Sheet Preview)</div>`;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'worksheet-row-wrapper';
-        const row = document.createElement('div');
-        row.className = 'worksheet-row';
-        row.id = "sentenceRowPreview";
-        dataArr.forEach((item) => {
-            const box = document.createElement('div');
-            box.className = 'sentence-cell-box';
-            const pinyinDiv = document.createElement('div');
-            pinyinDiv.className = 'sentence-pinyin';
-            pinyinDiv.textContent = pinyinPro.pinyin(item.char);
-            const cell = createCell();
-            cell.appendChild(generateSvgGroup(item.data.strokes, null, false, "#eee")); 
-            box.appendChild(pinyinDiv);
-            box.appendChild(cell);
-            row.appendChild(box);
-        });
-        wrapper.appendChild(row);
-        root.appendChild(wrapper);
-    }
-
-    function createCell() {
-        const cell = document.createElement('div');
-        cell.className = 'worksheet-cell';
-        cell.appendChild(createGridSvg(85, "#ccc"));
-        return cell;
-    }
-
-    async function downloadAllStrokes() {
-        for(const item of charDataArray) {
-            const char = item.char;
-            const allStrokes = item.data.strokes;
-            for(let i=0; i<allStrokes.length; i++) {
-                const svg = generateSvgGroup(allStrokes, null, false, COLORS[i % COLORS.length], false, i);
-                await exportSingleSvg(svg, `${char}_第${i+1}笔.png`, 'none', true);
-                await new Promise(r => setTimeout(r, 200));
-            }
+    // 修复：综合字帖拼音支持与 Canvas 四线三格绘制
+    function drawPinyinGridOnCanvas(ctx, x, y, w, h) {
+        ctx.strokeStyle = "#eee"; ctx.lineWidth = 1;
+        const step = h / 3;
+        for (let i = 0; i <= 3; i++) {
+            ctx.beginPath(); ctx.moveTo(x, y + i * step); ctx.lineTo(x + w, y + i * step); ctx.stroke();
         }
     }
 
+    function buildWorksheet(chars, dataArr) {
+        const root = document.getElementById('worksheetRowsRoot'); root.innerHTML = '';
+        dataArr.forEach((item, idx) => {
+            const char = item.char; const data = item.data;
+            const charWrapper = document.createElement('div'); charWrapper.style.marginBottom = "30px";
+            charWrapper.innerHTML = `<div class="row-label"><i>汉字 ${idx+1}</i>：${char}</div>`;
+            
+            const row1 = document.createElement('div'); row1.className = 'worksheet-row-wrapper';
+            const row1Content = document.createElement('div'); row1Content.className = 'worksheet-row';
+            const total = data.strokes.length; const compColorMap = getComponentColorMap(data);
+            
+            // 修复：综合字帖第一行增加拼音展示并应用四线三格
+            for(let i = 1; i <= total; i++) {
+                const box = document.createElement('div'); box.className = 'sentence-cell-box';
+                const pBox = document.createElement('div'); pBox.className = 'pinyin-grid'; pBox.textContent = pinyinPro.pinyin(char);
+                const cell = createCell();
+                if (currentStrokeMode === 'component') cell.appendChild(generateSvgGroupColored(data.strokes.slice(0, i), null, false, compColorMap, 0));
+                else cell.appendChild(generateSvgGroup(data.strokes.slice(0, i), null, false, "#333"));
+                box.appendChild(pBox); box.appendChild(cell); row1Content.appendChild(box);
+            }
+            const lastBox = document.createElement('div'); lastBox.className = 'sentence-cell-box';
+            const lastP = document.createElement('div'); lastP.className = 'pinyin-grid'; lastP.textContent = pinyinPro.pinyin(char);
+            const lastCell = createCell(); lastCell.appendChild(generateSvgGroup(data.strokes, data.medians, true));
+            lastBox.appendChild(lastP); lastBox.appendChild(lastCell); row1Content.appendChild(lastBox);
+            row1.appendChild(row1Content); charWrapper.appendChild(row1);
+
+            const row2 = document.createElement('div'); row2.className = 'worksheet-row-wrapper';
+            const row2Content = document.createElement('div'); row2Content.className = 'worksheet-row';
+            const pr = ["#333", "#eee", "#eee", "#eee", "#eee", "#eee", "#eee"];
+            for (let i = 0; i < 8; i++) {
+                const cell = createCell(); if (i < pr.length) cell.appendChild(generateSvgGroup(data.strokes, null, false, pr[i]));
+                row2Content.appendChild(cell);
+            }
+            row2.appendChild(row2Content); charWrapper.appendChild(row2); root.appendChild(charWrapper);
+        });
+    }
+
+    function buildSentenceWorksheet(inputText, dataArr) {
+        const root = document.getElementById('sentenceWorksheetRoot'); root.innerHTML = `<div class="row-label">📝 句子练习纸预览 (Sentence Sheet Preview)</div>`;
+        const wrapper = document.createElement('div'); wrapper.className = 'worksheet-row-wrapper';
+        const row = document.createElement('div'); row.className = 'worksheet-row';
+        Array.from(inputText).forEach((char) => {
+            const box = document.createElement('div'); box.className = 'sentence-cell-box';
+            const pinyinDiv = document.createElement('div'); pinyinDiv.className = 'pinyin-grid'; // 应用四线三格
+            const cell = createCell(); const isHanzi = /\p{Unified_Ideograph}/u.test(char);
+            if (isHanzi) {
+                pinyinDiv.textContent = pinyinPro.pinyin(char);
+                const item = dataArr.find(d => d.char === char); if (item) cell.appendChild(generateSvgGroup(item.data.strokes, null, false, "#eee"));
+            } else {
+                pinyinDiv.textContent = ""; 
+                const punc = document.createElement('div'); punc.style.cssText = "font-size:50px; color:#eee; display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-weight:bold;"; punc.textContent = char;
+                cell.appendChild(punc);
+            }
+            box.appendChild(pinyinDiv); box.appendChild(cell); row.appendChild(box);
+        });
+        wrapper.appendChild(row); root.appendChild(wrapper);
+    }
+
+    function createCell() { const c = document.createElement('div'); c.className = 'worksheet-cell'; c.appendChild(createGridSvg(85, "#eee")); return c; }
+
+    async function downloadAllStrokes() {
+        for(const item of charDataArray) {
+            const char = item.char; const all = item.data.strokes;
+            for(let i=0; i<all.length; i++) {
+                const svg = generateSvgGroup(all, null, false, COLORS[i % COLORS.length], false, i);
+                await exportSingleSvg(svg, `${char}_第${i+1}笔.png`, 'none', true); await new Promise(r => setTimeout(r, 200));
+            }
+        }
+    }
     async function downloadComponents() {
         for(const item of charDataArray) {
             const char = item.char;
             for(const c of item.comps) {
                 const svg = generateSvgGroup(c.indices.map(idx=>item.data.strokes[idx]), null, false, c.color);
-                await exportSingleSvg(svg, `${char}_${c.name}.png`, 'none', true);
-                await new Promise(r => setTimeout(r, 200));
+                await exportSingleSvg(svg, `${char}_${c.name}.png`, 'none', true); await new Promise(r => setTimeout(r, 200));
             }
         }
     }
-
     async function exportSingleSvg(svg, filename, mode = 'none', transparent = false) {
         return new Promise(resolve => {
-            const canvas = document.getElementById('exportCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 1024;
-            canvas.height = 1024;
-            ctx.clearRect(0, 0, 1024, 1024);
-            if (!transparent) { ctx.fillStyle = "white"; ctx.fillRect(0, 0, 1024, 1024); }
+            const canvas = document.getElementById('exportCanvas'); const ctx = canvas.getContext('2d');
+            canvas.width = 1024; canvas.height = 1024; ctx.clearRect(0,0,1024,1024);
+            if (!transparent) { ctx.fillStyle = "white"; ctx.fillRect(0,0,1024,1024); }
             drawSvgToCanvas(svg, ctx, 0, 0, 1024).then(() => {
-                const link = document.createElement("a");
-                link.href = canvas.toDataURL("image/png"); 
-                link.download = filename;
-                link.click(); 
-                resolve();
+                const link = document.createElement("a"); link.href = canvas.toDataURL("image/png"); link.download = filename; link.click(); resolve();
             });
         });
     }
 
     async function downloadWorksheet() {
         const inputText = document.getElementById('charInput').value || '字';
-        const cellSize = 400; const padding = 40;
-        const sheetCanvas = document.getElementById('sheetCanvas');
-        const ctx = sheetCanvas.getContext('2d');
-        let maxCols = 0;
-        const wrappers = document.querySelectorAll('.worksheet-row');
+        const cellSize = 400; const pHeight = 120; const padding = 40;
+        const sheetCanvas = document.getElementById('sheetCanvas'); const ctx = sheetCanvas.getContext('2d');
+        let maxCols = 0; const wrappers = document.querySelectorAll('.worksheet-row');
         wrappers.forEach(w => { if(w.children.length > maxCols) maxCols = w.children.length; });
         sheetCanvas.width = cellSize * maxCols; 
-        sheetCanvas.height = (cellSize * 2 + padding * 2) * charDataArray.length;
+        sheetCanvas.height = (cellSize + pHeight + cellSize + padding * 2) * charDataArray.length;
         ctx.fillStyle = "white"; ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
+        
         const rows = document.querySelectorAll('.worksheet-row');
+        let charIdxCounter = 0;
         for(let i=0; i<rows.length; i++) {
+            if (rows[i].id === 'sentenceRowPreview') continue;
             const cells = rows[i].children;
-            if (cells[0] && cells[0].classList.contains('sentence-cell-box')) continue; 
-            const yOffset = Math.floor(i/2) * (cellSize * 2 + padding * 2) + (i % 2 === 1 ? cellSize + padding : 0);
+            const isStrokeRow = cells[0] && cells[0].classList.contains('sentence-cell-box');
+            const char = isStrokeRow ? charDataArray[Math.floor(charIdxCounter/2)].char : "";
+            const yBase = Math.floor(charIdxCounter/2) * (cellSize + pHeight + cellSize + padding);
+            const currentY = isStrokeRow ? yBase : yBase + cellSize + pHeight + 20;
+
             for(let j=0; j<cells.length; j++) {
+                const cellX = j * cellSize;
+                if (isStrokeRow) {
+                    drawPinyinGridOnCanvas(ctx, cellX, currentY, cellSize, pHeight);
+                    ctx.fillStyle = "#FF8C42"; ctx.font = "bold 60px 'PingFang SC'"; ctx.textAlign = "center";
+                    ctx.fillText(pinyinPro.pinyin(char), cellX + cellSize/2, currentY + pHeight/2 + 20);
+                }
+                const svgY = isStrokeRow ? currentY + pHeight : currentY;
                 const svgs = cells[j].querySelectorAll('svg');
-                if(svgs[0]) await drawSvgToCanvas(svgs[0], ctx, j * cellSize, yOffset, cellSize);
-                if(svgs[1]) await drawSvgToCanvas(svgs[1], ctx, j * cellSize, yOffset, cellSize);
-                ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(j * cellSize, yOffset, cellSize, cellSize);
+                if(svgs[0]) await drawSvgToCanvas(svgs[0], ctx, cellX, svgY, cellSize);
+                if(svgs[1]) await drawSvgToCanvas(svgs[1], ctx, cellX, svgY, cellSize);
+                ctx.strokeStyle = "#eee"; ctx.lineWidth = 2; ctx.strokeRect(cellX, svgY, cellSize, cellSize);
             }
+            charIdxCounter++;
         }
-        const link = document.createElement('a'); 
-        link.download = `${inputText}_全词双行练习帖.png`; 
-        link.href = sheetCanvas.toDataURL("image/png"); 
-        link.click();
+        const link = document.createElement('a'); link.download = `${inputText}_全词双行练习帖.png`; link.href = sheetCanvas.toDataURL("image/png"); link.click();
     }
 
     async function downloadSentenceWorksheet() {
         const inputText = document.getElementById('charInput').value || '句子';
-        const cellSize = 400; const pinyinHeight = 120;
-        const sheetCanvas = document.getElementById('sheetCanvas');
-        const ctx = sheetCanvas.getContext('2d');
-        const count = charDataArray.length;
-        sheetCanvas.width = cellSize * count;
-        sheetCanvas.height = cellSize + pinyinHeight;
+        const cellSize = 400; const pHeight = 120;
+        const sheetCanvas = document.getElementById('sheetCanvas'); const ctx = sheetCanvas.getContext('2d');
+        const allChars = Array.from(inputText); const count = allChars.length;
+        sheetCanvas.width = cellSize * count; sheetCanvas.height = cellSize + pHeight;
         ctx.fillStyle = "white"; ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
         for(let i=0; i<count; i++) {
-            const item = charDataArray[i];
-            const x = i * cellSize;
-            ctx.fillStyle = "#FF8C42";
-            ctx.font = "bold 60px 'PingFang SC'";
-            ctx.textAlign = "center";
-            ctx.fillText(pinyinPro.pinyin(item.char), x + cellSize/2, 80);
-            const gridSvg = createGridSvg(cellSize, "#ccc");
-            await drawSvgToCanvas(gridSvg, ctx, x, pinyinHeight, cellSize);
-            const charSvg = generateSvgGroup(item.data.strokes, null, false, "#eee");
-            await drawSvgToCanvas(charSvg, ctx, x, pinyinHeight, cellSize);
-            ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.strokeRect(x, pinyinHeight, cellSize, cellSize);
+            const char = allChars[i]; const x = i * cellSize; const isHanzi = /\p{Unified_Ideograph}/u.test(char);
+            drawPinyinGridOnCanvas(ctx, x, 0, cellSize, pHeight);
+            if (isHanzi) {
+                ctx.fillStyle = "#FF8C42"; ctx.font = "bold 60px 'PingFang SC'"; ctx.textAlign = "center";
+                ctx.fillText(pinyinPro.pinyin(char), x + cellSize/2, 80);
+                const item = charDataArray.find(d => d.char === char);
+                if (item) await drawSvgToCanvas(generateSvgGroup(item.data.strokes, null, false, "#eee"), ctx, x, pHeight, cellSize);
+            } else {
+                ctx.fillStyle = "#eee"; ctx.font = "bold 240px 'PingFang SC'"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(char, x + cellSize/2, pHeight + cellSize/2 + 20);
+            }
+            await drawSvgToCanvas(createGridSvg(cellSize, "#eee"), ctx, x, pHeight, cellSize);
+            ctx.strokeStyle = "#eee"; ctx.lineWidth = 2; ctx.strokeRect(x, pHeight, cellSize, cellSize);
         }
-        const link = document.createElement('a'); 
-        link.download = `${inputText}_句子书写练习纸.png`; 
-        link.href = sheetCanvas.toDataURL("image/png"); 
-        link.click();
+        const link = document.createElement('a'); link.download = `${inputText}_句子书写练习纸.png`; link.href = sheetCanvas.toDataURL("image/png"); link.click();
     }
 
-    // ========================================================
-    // 循环动画下载功能
-    // ========================================================
-    let animLoopCount = 1;       
-    let animLayout = 'row';      
-    let isRecording = false;     
-
+    // 循环动画下载
+    let animLoopCount = 1; let animLayout = 'row'; let isRecording = false;     
     function showAnimDownloadModal() {
-        if (charDataArray.length === 0) {
-            alert('请先点击「生成并演示」加载汉字数据。');
-            return;
-        }
-        document.getElementById('animProgressBar').style.width = '0%';
-        document.getElementById('animStatusText').textContent = '准备就绪，点击开始录制。';
-        document.getElementById('animStartBtn').disabled = false;
-        document.getElementById('animDownloadModal').style.display = 'flex';
+        if (charDataArray.length === 0) return alert('请先点击生成数据！');
+        document.getElementById('animProgressBar').style.width = '0%'; document.getElementById('animStatusText').textContent = '准备就绪。';
+        document.getElementById('animStartBtn').disabled = false; document.getElementById('animDownloadModal').style.display = 'flex';
     }
-
-    function closeAnimModal() {
-        document.getElementById('animDownloadModal').style.display = 'none';
-        isRecording = false;
-    }
-
-    function setAnimLoopCount(n) {
-        animLoopCount = n;
-        [1,2,3].forEach(i => {
-            document.getElementById('animLoop'+i).classList.toggle('active', i === n);
-        });
-    }
-
-    function setAnimLayout(layout) {
-        animLayout = layout;
-        document.getElementById('animLayoutRow').classList.toggle('active', layout === 'row');
-        document.getElementById('animLayoutCol').classList.toggle('active', layout === 'col');
-    }
+    function closeAnimModal() { document.getElementById('animDownloadModal').style.display = 'none'; isRecording = false; }
+    function setAnimLoopCount(n) { animLoopCount = n; [1,2,3].forEach(i => document.getElementById('animLoop'+i).classList.toggle('active', i === n)); }
+    function setAnimLayout(l) { animLayout = l; document.getElementById('animLayoutRow').classList.toggle('active', l === 'row'); document.getElementById('animLayoutCol').classList.toggle('active', l === 'col'); }
 
     async function startAnimRecording() {
-        if (isRecording) return;
-        isRecording = true;
-
-        const startBtn    = document.getElementById('animStartBtn');
-        const statusEl    = document.getElementById('animStatusText');
-        const progressBar = document.getElementById('animProgressBar');
+        if (isRecording) return; isRecording = true;
+        const startBtn = document.getElementById('animStartBtn'); const statusEl = document.getElementById('animStatusText'); const pb = document.getElementById('animProgressBar');
         startBtn.disabled = true;
-
         try {
-            const chars = charDataArray;
-            const N = chars.length;
-            const cellSize    = 300;
-            const strokeDelay = 800;   
-            const pauseDelay  = 2000;  
-
-            const canvasW = animLayout === 'row' ? cellSize * N : cellSize;
-            const canvasH = animLayout === 'row' ? cellSize : cellSize * N;
-
-            const recCanvas = document.createElement('canvas');
-            recCanvas.width  = canvasW;
-            recCanvas.height = canvasH;
-            const recCtx = recCanvas.getContext('2d');
-
-            statusEl.textContent = '正在准备帧数据…';
-            progressBar.style.width = '5%';
-
+            const chars = charDataArray; const cellSize = 300; const strokeDelay = 800; const pauseDelay = 2000;  
+            const canvasW = animLayout === 'row' ? cellSize * chars.length : cellSize; const canvasH = animLayout === 'row' ? cellSize : cellSize * chars.length;
+            const recCanvas = document.createElement('canvas'); recCanvas.width = canvasW; recCanvas.height = canvasH; const recCtx = recCanvas.getContext('2d');
             const charFrames = [];
-            for (let ci = 0; ci < N; ci++) {
-                const item = chars[ci];
-                const frames = [];
-                for (let s = 1; s <= item.data.strokes.length; s++) {
-                    const svgStr = buildFrameSvgString(item.data, s, cellSize);
-                    const bmp = await svgStringToBitmap(svgStr, cellSize);
-                    frames.push(bmp);
-                }
-                charFrames.push(frames);
-                progressBar.style.width = (5 + 30 * (ci + 1) / N) + '%';
+            for (let ci = 0; ci < chars.length; ci++) {
+                const item = chars[ci]; const frames = [];
+                for (let s = 1; s <= item.data.strokes.length; s++) frames.push(await svgStringToBitmap(buildFrameSvgString(item.data, s, cellSize), cellSize));
+                charFrames.push(frames); pb.style.width = (5 + 30 * (ci + 1) / chars.length) + '%';
             }
-
-            statusEl.textContent = '正在初始化 GIF 编码器…';
-            progressBar.style.width = '37%';
-
-            let maxStrokes = 0;
-            chars.forEach(item => { if (item.data.strokes.length > maxStrokes) maxStrokes = item.data.strokes.length; });
-
-            const workerSrc = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js')
-                .then(r => r.text());
-            const workerBlob = new Blob([workerSrc], { type: 'application/javascript' });
-            const workerURL  = URL.createObjectURL(workerBlob);
-
-            const gif = new GIF({
-                workers: 2,
-                quality: 6,           
-                width:   canvasW,
-                height:  canvasH,
-                workerScript: workerURL,
-                repeat: 0,            
-                background: '#ffffff',
-            });
-
-            statusEl.textContent = '正在合成慢速动画帧…';
-            const totalFrames = (maxStrokes + 1) * animLoopCount;
-            let doneFrames = 0;
-
+            let maxS = 0; chars.forEach(item => { if (item.data.strokes.length > maxS) maxS = item.data.strokes.length; });
+            const workerSrc = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js').then(r => r.text());
+            const workerURL = URL.createObjectURL(new Blob([workerSrc], { type: 'application/javascript' }));
+            const gif = new GIF({ workers: 2, quality: 6, width: canvasW, height: canvasH, workerScript: workerURL, repeat: 0, background: '#ffffff' });
             for (let loop = 0; loop < animLoopCount; loop++) {
-                for (let f = 0; f < maxStrokes; f++) {
-                    recCtx.fillStyle = '#ffffff';
-                    recCtx.fillRect(0, 0, canvasW, canvasH);
-                    for (let ci = 0; ci < N; ci++) {
-                        const frames = charFrames[ci];
-                        const bmp = frames[Math.min(f, frames.length - 1)];
-                        const dx = animLayout === 'row' ? ci * cellSize : 0;
-                        const dy = animLayout === 'row' ? 0 : ci * cellSize;
-                        if (bmp) recCtx.drawImage(bmp, dx, dy, cellSize, cellSize);
+                for (let f = 0; f < maxS; f++) {
+                    recCtx.fillStyle = '#ffffff'; recCtx.fillRect(0,0,canvasW,canvasH);
+                    for (let ci = 0; ci < chars.length; ci++) {
+                        const bmp = charFrames[ci][Math.min(f, charFrames[ci].length-1)];
+                        recCtx.drawImage(bmp, animLayout === 'row' ? ci * cellSize : 0, animLayout === 'row' ? 0 : ci * cellSize, cellSize, cellSize);
                     }
                     gif.addFrame(recCtx, { copy: true, delay: strokeDelay });
-                    doneFrames++;
-                    progressBar.style.width = (37 + 40 * doneFrames / totalFrames) + '%';
-                    await new Promise(r => setTimeout(r, 0));
                 }
-                recCtx.fillStyle = '#ffffff';
-                recCtx.fillRect(0, 0, canvasW, canvasH);
-                for (let ci = 0; ci < N; ci++) {
-                    const frames = charFrames[ci];
-                    const bmp = frames[frames.length - 1];
-                    const dx = animLayout === 'row' ? ci * cellSize : 0;
-                    const dy = animLayout === 'row' ? 0 : ci * cellSize;
-                    if (bmp) recCtx.drawImage(bmp, dx, dy, cellSize, cellSize);
+                recCtx.fillStyle = '#ffffff'; recCtx.fillRect(0,0,canvasW,canvasH);
+                for (let ci = 0; ci < chars.length; ci++) {
+                    const bmp = charFrames[ci][charFrames[ci].length-1];
+                    recCtx.drawImage(bmp, animLayout === 'row' ? ci * cellSize : 0, animLayout === 'row' ? 0 : ci * cellSize, cellSize, cellSize);
                 }
                 gif.addFrame(recCtx, { copy: true, delay: pauseDelay });
-                doneFrames++;
-                progressBar.style.width = (37 + 40 * doneFrames / totalFrames) + '%';
             }
-
-            statusEl.textContent = '正在编码 GIF…';
-            progressBar.style.width = '80%';
-
-            await new Promise((resolve, reject) => {
-                gif.on('progress', p => {
-                    progressBar.style.width = (80 + p * 18) + '%';
-                });
-                gif.on('finished', blob => {
-                    const url  = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    const inputText = document.getElementById('charInput').value || '汉字';
-                    link.download = `${inputText}_教学循环动画.gif`;
-                    link.href = url;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    URL.revokeObjectURL(workerURL);
-                    resolve();
-                });
-                gif.on('error', err => reject(err));
-                gif.render();
+            gif.on('finished', blob => {
+                const url = URL.createObjectURL(blob); const link = document.createElement('a');
+                link.download = `${document.getElementById('charInput').value || '汉字'}_教学动画.gif`; link.href = url; link.click(); URL.revokeObjectURL(url); URL.revokeObjectURL(workerURL);
+                statusEl.textContent = '✅ 下载完成！'; pb.style.width = '100%'; startBtn.disabled = false; isRecording = false;
             });
-
-            statusEl.textContent = '✅ 下载完成！';
-            progressBar.style.width = '100%';
-
-        } catch (err) {
-            console.error('GIF 导出失败:', err);
-            document.getElementById('animStatusText').textContent = '❌ 导出失败：' + (err.message || err);
-        }
-
-        startBtn.disabled = false;
-        isRecording = false;
+            gif.render();
+        } catch (err) { statusEl.textContent = '❌ 导出失败'; startBtn.disabled = false; isRecording = false; }
     }
 
     function buildFrameSvgString(data, strokeCount, size) {
-        const gridPath = `M512,0 V1024 M0,512 H1024`;
-        let strokePaths = '';
-        for (let i = 0; i < strokeCount; i++) {
-            const color = COLORS[i % COLORS.length];
-            strokePaths += `<path d="${data.strokes[i]}" fill="${color}"/>`;
-        }
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024">
-  <rect width="1024" height="1024" fill="white"/>
-  <path d="${gridPath}" stroke="#e0e0e0" stroke-dasharray="30,15" stroke-width="6" fill="none"/>
-  <g transform="${TRANSFORM}">
-    ${strokePaths}
-  </g>
-</svg>`;
+        let strokes = ''; for (let i = 0; i < strokeCount; i++) strokes += `<path d="${data.strokes[i]}" fill="${COLORS[i % COLORS.length]}"/>`;
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="white"/><path d="M512,0 V1024 M0,512 H1024" stroke="#e0e0e0" stroke-dasharray="30,15" stroke-width="6" fill="none"/><g transform="${TRANSFORM}">${strokes}</g></svg>`;
     }
-
     function svgStringToBitmap(svgStr, size) {
         return new Promise(resolve => {
-            const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
-            const img = new Image();
+            const img = new Image(); const url = URL.createObjectURL(new Blob([svgStr], { type: 'image/svg+xml' }));
             img.onload = () => {
-                const offscreen = document.createElement('canvas');
-                offscreen.width  = size;
-                offscreen.height = size;
-                const ctx = offscreen.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, size, size);
-                ctx.drawImage(img, 0, 0, size, size);
-                URL.revokeObjectURL(url);
-                createImageBitmap(offscreen)
-                    .then(bmp => resolve(bmp))
-                    .catch(() => resolve(offscreen));
+                const c = document.createElement('canvas'); c.width = size; c.height = size; const ctx = c.getContext('2d');
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,size,size); ctx.drawImage(img, 0,0,size,size); URL.revokeObjectURL(url);
+                createImageBitmap(c).then(resolve);
             };
-            img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
             img.src = url;
         });
     }
