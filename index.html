@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.12</title>
+    <title>对外汉语教学神器 - 笔画部件 & 词组字帖版 v47.14</title>
     <!-- 引入 Hanzi Writer -->
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <!-- 引入 pinyin-pro 用于获取拼音 -->
@@ -53,7 +53,8 @@
         .canvas-area { display: flex; flex-direction: column; gap: 30px; justify-content: center; width: 100%; max-width: 1200px;}
         .word-row-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
         
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; min-width: 280px; max-width: 340px; position: relative;}
+        /* 修改卡片宽度，允许更宽以并排容纳动画、彩虹图和手写区 */
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 900px; position: relative; box-sizing: border-box;}
         
         .hsk-badge {
             position: absolute;
@@ -69,12 +70,12 @@
             z-index: 10;
         }
 
-        .pinyin-display { font-size: 24px; font-weight: bold; color: #FF8C42; margin-bottom: 2px; min-height: 30px; }
-        .meaning-display { font-size: 13px; color: #666; margin-bottom: 2px; font-style: italic; min-height: 18px; }
-        .meaning-ar { font-size: 13px; color: #8E44AD; margin-bottom: 8px; font-style: italic; min-height: 18px; direction: rtl; font-family: 'Arial', sans-serif; }
+        .pinyin-display { font-size: 28px; font-weight: bold; color: #FF8C42; margin-bottom: 2px; min-height: 30px; }
+        .meaning-display { font-size: 14px; color: #666; margin-bottom: 2px; font-style: italic; min-height: 18px; }
+        .meaning-ar { font-size: 14px; color: #8E44AD; margin-bottom: 8px; font-style: italic; min-height: 18px; direction: rtl; font-family: 'Arial', sans-serif; }
         
-        /* 卡片内组词面板样式 */
-        .words-in-card { width: 100%; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px; }
+        /* 组词面板样式 */
+        .words-in-card { width: 100%; }
         .words-char-group { margin-bottom: 10px; }
         .words-char-title { font-size: 14px; font-weight: bold; color: #3F8EFC; margin-bottom: 8px; border-left: 3px solid #3F8EFC; padding-left: 8px; }
         .word-item { background: #f8f9fa; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; text-align: left; box-shadow: inset 0 0 5px rgba(0,0,0,0.02); }
@@ -211,7 +212,7 @@
 </head>
 <body>
 
-<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.12 语音配音全能版)</div>
+<div class="header-title">👨‍🏫 中文课堂：汉字/词组综合教学工具 (v47.14 合并重组版)</div>
 
 <div class="no-print">
     <div class="input-wrapper">
@@ -233,7 +234,6 @@
         <button class="btn-dl-comp" onclick="downloadComponents()">🧩 4. 下载汉字部件<span>Download Components</span><span dir="rtl" style="font-family:'Arial', sans-serif;">تنزيل أجزاء الحروف</span></button>
         <button class="btn-dl-worksheet" onclick="downloadWorksheet()">📥 5. 下载单字字帖<span>Download Character Sheet</span><span dir="rtl" style="font-family:'Arial', sans-serif;">تنزيل دفتر الحروف</span></button>
         <button class="btn-sentence" onclick="downloadSentenceWorksheet()">📝 6. 下载句子字帖<span>Download Sentence Sheet</span><span dir="rtl" style="font-family:'Arial', sans-serif;">تنزيل دفتر الجمل</span></button>
-        <button class="btn-sentence" onclick="downloadSentenceWorksheet()" style="background:#d35400; display:none;">📝 6. 下载句子字帖<span>Download Sentence Sheet</span><span dir="rtl" style="font-family:'Arial', sans-serif;">تنزيل دفتر الجمل</span></button>
     </div>
 </div>
 
@@ -249,14 +249,17 @@
 </div>
 
 <div class="acc-container" id="accRoot">
+    <!-- 合并后的 动画与彩虹图 面板 -->
     <div class="acc-item">
-        <div class="acc-header" id="header-anim" onclick="toggleAcc('acc-anim')">加载中...</div>
-        <div class="acc-content" id="acc-anim"></div>
+        <div class="acc-header active" id="header-anim-main" onclick="toggleAcc('acc-anim-main')">
+            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span>🎬 动态演示与彩虹笔顺 <span style="font-size: 14px; color: #666; font-weight: normal;">(Animation & Rainbow Stroke)</span></span>
+                <span dir="rtl" style="font-size: 14px; color: #8E44AD; font-weight: bold; font-family: 'Arial', sans-serif;">الرسوم المتحركة ومخطط الألوان</span>
+            </div>
+        </div>
+        <div class="acc-content active" id="acc-anim-main"></div>
     </div>
-    <div class="acc-item">
-        <div class="acc-header" id="header-main" onclick="toggleAcc('acc-main')">加载中...</div>
-        <div class="acc-content" id="acc-main"></div>
-    </div>
+    
     <div class="acc-item">
         <div class="acc-header" id="header-comp" onclick="toggleAcc('acc-comp')">加载中...</div>
         <div class="acc-content" id="acc-comp">
@@ -266,6 +269,7 @@
             </div>
         </div>
     </div>
+    
     <div class="acc-item">
         <div class="acc-header" id="header-worksheet" onclick="toggleAcc('acc-worksheet')">加载中...</div>
         <div class="acc-content" id="acc-worksheet">
@@ -281,11 +285,13 @@
             </div>
         </div>
     </div>
+    
     <div class="acc-item">
         <div class="acc-header" id="header-sentence" onclick="toggleAcc('acc-sentence')">加载中...</div>
         <div class="acc-content" id="acc-sentence">
             <div class="worksheet-panel" style="margin-top:0; box-shadow:none; padding-top:10px;">
                 <div id="sentenceWorksheetRoot"></div>
+                <!-- 组词和例句将被统一迁移挂载到这里 -->
             </div>
         </div>
     </div>
@@ -381,9 +387,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // 由于合并了面板，去除了独立的 header-main 和 header-anim 的自动映射，此处保留其他面板的翻译替换
         const mappings = [
-            { id: 'header-anim', btnSelector: '.btn-anim-dl', en: 'Animation', ar: 'تنزيل الرسوم المتحركة' },
-            { id: 'header-main', btnSelector: '.btn-dl-main', en: 'Rainbow Chart', ar: 'تنزيل مخطط الألوان' },
             { id: 'header-comp', btnSelector: '.btn-dl-comp', en: 'Components', ar: 'تنزيل أجزاء الحروف' },
             { id: 'header-worksheet', btnSelector: '.btn-dl-worksheet', en: 'Character Sheet', ar: 'تنزيل دفتر الحروف' },
             { id: 'header-sentence', btnSelector: '.btn-sentence:not([style*="display:none"])', en: 'Sentence Sheet', ar: 'تنزيل دفتر الجمل' }
@@ -681,69 +686,67 @@
         const chars = Array.from(inputText).filter(c => /\p{Unified_Ideograph}/u.test(c)); 
         if(chars.length === 0) return;
         
-        document.getElementById('acc-main').innerHTML = '';
-        document.getElementById('acc-anim').innerHTML = '';
+        // 清空所有容器
+        document.getElementById('acc-anim-main').innerHTML = '';
         document.getElementById('compDisplayRoot').innerHTML = '';
         document.getElementById('worksheetRowsRoot').innerHTML = '';
         document.getElementById('sentenceWorksheetRoot').innerHTML = '';
 
-        const labels = [
-            { zh: '彩虹笔顺图', en: 'Rainbow Stroke Order', ar: 'ترتيب ضربات قوس قزح' },
-            { zh: '循环动画', en: 'Loop Animation', ar: 'رسوم متحركة متكررة' }
-        ];
+        // ----------------------------------------------------
+        // 构建横向合并的大卡片区（包含：信息 + 动画 + 彩虹图 + 手写）
+        // ----------------------------------------------------
+        const section = document.createElement('div');
+        section.className = 'canvas-area'; 
         
-        labels.forEach((labelObj, groupIdx) => {
-            const section = document.createElement('div');
-            section.className = 'canvas-area'; 
+        const rowContainer = document.createElement('div');
+        rowContainer.className = 'word-row-container';
+        
+        chars.forEach((char, charIdx) => {
+            const card = document.createElement('div');
+            card.className = 'card';
             
-            section.innerHTML = `<div class="row-label" style="justify-content:center; font-size:18px; margin-top:10px; flex-direction:column; gap:4px; text-align:center;">
-                <div>${labelObj.zh} <span style="font-size:14px; color:#666; font-weight:normal;">(${labelObj.en})</span></div>
-                <div dir="rtl" style="font-size:15px; color:#8E44AD; font-weight:bold; font-family:'Arial', sans-serif;">${labelObj.ar}</div>
-            </div>`;
+            const pinyin = pinyinPro.pinyin(char);
+            const hskHtml = getHSKLevel(char) ? `<div class="hsk-badge">${getHSKLevel(char)}</div>` : '';
             
-            const rowContainer = document.createElement('div');
-            rowContainer.className = 'word-row-container';
-            chars.forEach((char, charIdx) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                const pinyin = pinyinPro.pinyin(char);
-                const targetId = `target_${groupIdx}_${charIdx}`;
-                const hskHtml = getHSKLevel(char) ? `<div class="hsk-badge">${getHSKLevel(char)}</div>` : '';
-                card.innerHTML = `${hskHtml}<div class="pinyin-display">${pinyin}</div><div class="meaning-display" id="meaning_${groupIdx}_${charIdx}">...</div><div class="meaning-ar" id="meaning_ar_${groupIdx}_${charIdx}">...</div><div id="${targetId}" class="grid-container"></div>`;
+            card.innerHTML = `
+                ${hskHtml}
+                <div class="pinyin-display">${pinyin}</div>
+                <div class="meaning-display" id="meaning_main_${charIdx}">...</div>
+                <div class="meaning-ar" id="meaning_ar_main_${charIdx}">...</div>
                 
-                if (groupIdx === 0) {
-                    // 将组词和例句容器添加到彩虹图卡片下方
-                    const wc = document.createElement('div'); wc.id = `words_container_${charIdx}`; wc.className = 'words-in-card'; card.appendChild(wc);
-                }
-
-                if (groupIdx === 1) {
-                    // --- 新增：手写检测练习区 ---
-                    const quizArea = document.createElement('div');
-                    quizArea.className = 'quiz-area';
-                    quizArea.style.cssText = "width: 100%; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px; display: flex; flex-direction: column; align-items: center;";
-                    quizArea.innerHTML = `
-                        <div class="words-char-title" style="width: 100%; text-align: left; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
-                            <span>✍️ 手写练习</span>
-                            <span style="font-size:11px; color:#999; font-weight:normal; background:#f0f0f0; padding:2px 6px; border-radius:4px;">Handwriting</span>
-                        </div>
+                <div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:center; width:100%; margin-top:20px; border-top:1px dashed #eee; padding-top:20px;">
+                    <!-- 循环动画模块 -->
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <div style="font-size:14px; font-weight:bold; color:#3F8EFC; margin-bottom:10px;">🎬 动态笔顺 (Animation)</div>
+                        <div id="target_anim_${charIdx}" class="grid-container"></div>
+                    </div>
+                    
+                    <!-- 彩虹图模块 -->
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <div style="font-size:14px; font-weight:bold; color:#3F8EFC; margin-bottom:10px;">🌈 彩虹笔顺 (Rainbow)</div>
+                        <div id="target_rb_${charIdx}" class="grid-container"></div>
+                    </div>
+                    
+                    <!-- 智能手写练习模块 -->
+                    <div style="display:flex; flex-direction:column; align-items:center; width: 240px;">
+                        <div style="font-size:14px; font-weight:bold; color:#3F8EFC; margin-bottom:10px;">✍️ 手写练习 (Practice)</div>
                         <div id="quiz_${charIdx}" class="grid-container" style="cursor: crosshair; touch-action: none; position: relative;">
                             <div id="quiz_hw_${charIdx}" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:1;"></div>
                         </div>
                         <div id="quiz_feedback_${charIdx}" style="min-height: 20px; margin-top: 10px; font-size: 14px; font-weight: bold; color: #999; text-align: center;">准备就绪 (Ready)</div>
-                        <div style="display: flex; gap: 10px; margin-top: 10px; width: 100%;">
+                        <div style="display: flex; gap: 10px; margin-top: 5px; width: 100%;">
                             <button class="stroke-mode-btn" onclick="resetQuiz(${charIdx})" style="flex:1; background:#f8f9fa; border: 1px solid #ddd; color:#555; padding: 6px;">↺ 重写</button>
                             <button class="stroke-mode-btn" onclick="clearQuiz(${charIdx})" style="flex:1; background:#f8f9fa; border: 1px solid #ddd; color:#555; padding: 6px;">🗑️ 清空</button>
                         </div>
-                    `;
-                    card.appendChild(quizArea);
-                }
-                rowContainer.appendChild(card);
-            });
-            section.appendChild(rowContainer); 
+                    </div>
+                </div>
+            `;
             
-            if (groupIdx === 0) document.getElementById('acc-main').appendChild(section);
-            else if (groupIdx === 1) document.getElementById('acc-anim').appendChild(section);
+            rowContainer.appendChild(card);
         });
+        
+        section.appendChild(rowContainer); 
+        document.getElementById('acc-anim-main').appendChild(section);
 
         for (let i = 0; i < chars.length; i++) {
             const char = chars[i];
@@ -751,29 +754,22 @@
                 const data = await HanziWriter.loadCharacterData(char);
                 charDataArray.push({ char, data });
                 
-                // 彩虹图部分
-                const t0 = document.getElementById(`target_0_${i}`);
-                t0.appendChild(createGridSvg(240)); 
-                t0.appendChild(generateSvgGroup(data.strokes, data.medians, true));
-                
-                // 循环动画部分 (修改: 加入 charDataLoader 确保同步，并叠加数字 SVG 以保持完全一致)
-                const t1 = document.getElementById(`target_1_${i}`);
-                const w = HanziWriter.create(t1, char, { 
-                    width: 240, 
-                    height: 240, 
-                    padding: 20, 
-                    showOutline: true, 
-                    outlineColor: '#dfdfdf', // 保持底色清晰可见
-                    showCharacter: false, 
-                    strokeAnimationSpeed: 0.5, 
-                    delayBetweenStrokes: 500,
-                    charDataLoader: (c, onComplete) => { onComplete(data); } // 关键: 防止重新发起网络请求从而导致颜色设置被覆盖
+                // 1. 初始化循环动画
+                const tAnim = document.getElementById(`target_anim_${i}`);
+                const w = HanziWriter.create(tAnim, char, { 
+                    width: 240, height: 240, padding: 20, showOutline: true, outlineColor: '#dfdfdf', 
+                    showCharacter: false, strokeAnimationSpeed: 0.5, delayBetweenStrokes: 500,
+                    charDataLoader: (c, onComplete) => { onComplete(data); } 
                 });
                 writers.push(w);
-                // 增加一层笔顺数字覆盖在动画上，让其与彩虹图不仅颜色一样，连数字都完全一致
-                t1.appendChild(generateNumbersSvg(data.medians));
+                tAnim.appendChild(generateNumbersSvg(data.medians));
                 
-                // --- 初始化智能手写检测引擎 ---
+                // 2. 初始化彩虹图
+                const tRb = document.getElementById(`target_rb_${i}`);
+                tRb.appendChild(createGridSvg(240)); 
+                tRb.appendChild(generateSvgGroup(data.strokes, data.medians, true));
+                
+                // 3. 初始化智能手写检测引擎
                 const tQuiz = document.getElementById(`quiz_${i}`);
                 if (tQuiz) {
                     const grid = createGridSvg(240);
@@ -784,37 +780,39 @@
                     tQuiz.appendChild(grid);
 
                     const qw = HanziWriter.create(`quiz_hw_${i}`, char, {
-                        width: 240,
-                        height: 240,
-                        padding: 20,
-                        showOutline: true,
-                        showCharacter: false,
-                        drawingColor: '#333',
-                        drawingWidth: 15,
-                        outlineColor: '#eee',
-                        showHintAfterMisses: 2,
-                        charDataLoader: (c, onComplete) => { onComplete(data); } // 关键: 提高加载速度并同步
+                        width: 240, height: 240, padding: 20, showOutline: true, showCharacter: false,
+                        drawingColor: '#333', drawingWidth: 15, outlineColor: '#eee', showHintAfterMisses: 2,
+                        charDataLoader: (c, onComplete) => { onComplete(data); }
                     });
                     quizWriters.push(qw);
                     startQuiz(i);
                 }
 
-                getTranslation(char).then(m => { for(let g=0; g<2; g++) { const el = document.getElementById(`meaning_${g}_${i}`); if(el) el.textContent = m; } });
-                getArabicTranslation(char).then(ar => { for(let g=0; g<2; g++) { const el = document.getElementById(`meaning_ar_${g}_${i}`); if(el) el.textContent = ar; } });
-                analyzeAndDisplayComponents(char, data, i); buildCharWordsPanel(char, i);
+                // 异步获取翻译
+                getTranslation(char).then(m => { const el = document.getElementById(`meaning_main_${i}`); if(el) el.textContent = m; });
+                getArabicTranslation(char).then(ar => { const el = document.getElementById(`meaning_ar_main_${i}`); if(el) el.textContent = ar; });
+                
+                // 渲染部件解析
+                analyzeAndDisplayComponents(char, data, i); 
             } catch (e) { console.error(e); }
         }
         
         isLooping = true; 
         runInfiniteAnimation(); 
-        buildWorksheet(chars, charDataArray); 
-        buildSentenceWorksheet(inputText, charDataArray); 
         
-        ['acc-anim', 'acc-main', 'acc-comp', 'acc-worksheet', 'acc-sentence'].forEach(id => {
+        // 渲染单字字帖
+        buildWorksheet(chars, charDataArray); 
+        // 渲染句子字帖
+        buildSentenceWorksheet(inputText, charDataArray); 
+        // 统一在句子字帖最下方挂载所有汉字的【常用组词与例句】
+        buildAllCharWordsPanel(chars);
+        
+        // 默认打开动画与彩虹图面板
+        ['acc-anim-main', 'acc-comp', 'acc-worksheet', 'acc-sentence'].forEach(id => {
             const content = document.getElementById(id);
             if (content) {
                 const header = content.previousElementSibling;
-                if (id === 'acc-anim') {
+                if (id === 'acc-anim-main') {
                     content.classList.add('active');
                     if (header) header.classList.add('active');
                 } else {
@@ -967,66 +965,91 @@
         });
     }
 
-    function buildCharWordsPanel(char, charIdx) {
-        const root = document.getElementById(`words_container_${charIdx}`); if (!root) return;
-        const words = (CHAR_DICT[char] || {}).words; const group = document.createElement('div');
-        group.className = 'words-char-group'; group.innerHTML = `<div class="words-char-title">常用组词 / Examples</div>`;
-        if (!words) group.innerHTML += `<div style="color:#aaa; font-size:11px;">暂无词条</div>`;
-        else words.forEach(w => {
-            const item = document.createElement('div'); item.className = 'word-item';
-            item.innerHTML = `<div class="word-item-header"><span class="word-item-hanzi">${w.w}</span><span class="word-item-py">${w.py}</span><span class="speak-btn" onclick="speakText('${w.w}')">🔊</span></div><div class="word-item-trans-box"><div class="word-item-en">🇬🇧 ${w.en}</div><div class="word-item-ar" dir="rtl">🇸🇦 ${w.ar}</div></div><div class="word-item-ex-py">🗣️ ${pinyinPro.pinyin(w.ex)}</div><div class="word-item-ex">📝 ${w.ex} <span class="speak-btn" onclick="speakText('${w.ex}')">🔊</span></div><div class="word-item-ex-en">🇬🇧 ${w.exEn}</div><div class="word-item-ex-ar" dir="rtl">🇸🇦 ${w.exAr}</div>`;
-            group.appendChild(item);
+    // 新增：将所有汉字的组词例句统一构建并挂载到句子字帖区域下方
+    function buildAllCharWordsPanel(chars) {
+        const root = document.getElementById('sentenceWorksheetRoot');
+        if (!root) return;
+
+        const wordsSection = document.createElement('div');
+        wordsSection.className = 'words-in-card';
+        wordsSection.style.cssText = 'margin-top: 30px; padding-top: 20px; border-top: 2px dashed #eee; display: flex; flex-direction: column; gap: 20px;';
+        wordsSection.innerHTML = `<div class="row-label" style="font-size: 16px; margin-bottom: 10px;">📚 逐字拓展：常用组词与例句 (Vocabulary & Sentences)</div>`;
+        
+        const wordsGrid = document.createElement('div');
+        // 使用 CSS Grid 完美适配不同设备的排版
+        wordsGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; box-sizing: border-box;';
+
+        chars.forEach((char) => {
+            const words = (CHAR_DICT[char] || {}).words; 
+            const group = document.createElement('div');
+            group.className = 'words-char-group'; 
+            group.style.cssText = 'background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; margin-bottom: 0;';
+            
+            group.innerHTML = `<div class="words-char-title" style="font-size: 16px; margin-bottom: 15px;">「${char}」组词例句</div>`;
+            
+            if (!words) {
+                group.innerHTML += `<div style="color:#aaa; font-size:13px; text-align:center; padding: 20px;">暂无词条</div>`;
+            } else {
+                words.forEach(w => {
+                    const item = document.createElement('div'); item.className = 'word-item';
+                    item.innerHTML = `<div class="word-item-header"><span class="word-item-hanzi">${w.w}</span><span class="word-item-py">${w.py}</span><span class="speak-btn" onclick="speakText('${w.w}')">🔊</span></div><div class="word-item-trans-box"><div class="word-item-en">🇬🇧 ${w.en}</div><div class="word-item-ar" dir="rtl">🇸🇦 ${w.ar}</div></div><div class="word-item-ex-py">🗣️ ${pinyinPro.pinyin(w.ex)}</div><div class="word-item-ex">📝 ${w.ex} <span class="speak-btn" onclick="speakText('${w.ex}')">🔊</span></div><div class="word-item-ex-en">🇬🇧 ${w.exEn}</div><div class="word-item-ex-ar" dir="rtl">🇸🇦 ${w.exAr}</div>`;
+                    group.appendChild(item);
+                });
+            }
+            wordsGrid.appendChild(group);
         });
-        root.appendChild(group);
+        
+        wordsSection.appendChild(wordsGrid);
+        root.appendChild(wordsSection);
     }
 
     const SHUOWEN_DB = {
         '一': { category:'指事', strokes_type:'横', original:'惟初太始，道立於一，造分天地，化成萬物。', cn:'数字一，也是万物之始。横画象征天地间最初的一划，万物由此生发。', en:'The number one; also the beginning of all things. A single horizontal stroke representing the primordial line from which all creation emerges.', ar:'الرقم واحد وبداية كل شيء. خط أفقي واحد يرمز إلى الخط الأولي الذي نشأ منه الكون.', related:['二','三','万'], note:'一是汉字笔画最少的字，也是哲学上"道"的起点' },
         '二': { category:'指事', original:'地之數也，从偶一。', cn:'数字二，由两横组成，象征天地、阴阳两仪。', en:'The number two. Two horizontal strokes symbolizing heaven and earth, yin and yang — the two fundamental forces.', ar:'الرقم اثنان. خطان أفقيان يرمزان إلى السماء والأرض، والين واليانغ.', related:['一','三','两'], note:'二象征阴阳对立统一，是中国哲学的基础' },
         '三': { category:'指事', original:'天地人之道也，三畫而連其中，謂之王。', cn:'数字三，由三横组成，象征天、地、人三才。三横相连为"王"。', en:'The number three. Three strokes represent Heaven, Earth, and Humanity — the three powers of Chinese cosmology.', ar:'الرقم ثلاثة. ثلاثة خطوط تمثل السماء والأرض والإنسانية - القوى الثلاث في الكونيات الصينية.', related:['一','二','王'], note:'三才（天地人）是中国传统文化的核心概念' },
-        '人': { category:'象形', original:'天地之性最貴者也。此籀文象臂脛之形。', cn:'象形字。字形像人侧立、张开双臂的样子。人是天地间最尊贵的生灵。', en:'A pictograph of a person standing sideways with arms outstretched. Human beings are the most noble of all creatures between Heaven and Earth.', ar:'صورة شخص يقف جانباً وذراعيه ممدودتان. البشر هم أشرف المخلوقات بين السماء والأرض.', related:['从','众','大'], note:'人字两笔，一撇一捺，相互支撑，象征人与人的依存' },
-        '大': { category:'象形', original:'天大，地大，人亦大。象人形。', cn:'象形字。像一个人张开双臂双腿站立的正面形象，表示宏大。', en:'A pictograph of a person standing with arms and legs spread wide — conveying the sense of greatness and magnitude.', ar:'صورة شخص يقف وذراعيه وساقيه منتشرتان - تعبر عن العظمة والضخامة.', related:['天','人','太'], note:'大字加一点为"太"，加一横在上为"天"' },
-        '小': { category:'指事', original:'物之微也。从八，丨見而分之。', cn:'指事字。中间一竖，两旁各一点，表示细小的东西被分开。引申为微小之意。', en:'A semantic indicator: a central stroke flanked by two dots, showing something tiny being divided. Means small or little.', ar:'مؤشر دلالي: خط مركزي مع نقطتين على الجانبين، يظهر شيئاً صغيراً يُقسَّم. يعني صغير أو قليل.', related:['少','微','细'], note:'小字中间一竖不能超出两点，否则变成"示"' },
-        '中': { category:'指事', original:'内也。从口，丨，上下通。', cn:'指事字。口形中间一竖贯穿，表示正中央。引申为中国、中等、中心。', en:'A semantic indicator: a vertical stroke piercing through a rectangle, signifying the center or middle. Extended to mean China, medium, and core.', ar:'مؤشر دلالي: خط عمودي يخترق مستطيلاً، يدل على المركز أو الوسط. امتد معناه ليشمل الصين والمتوسط والمركز.', related:['中国','忠','冲'], note:'中国称"中"，古代认为中原是天下之中' },
-        '上': { category:'指事', original:'高也。此古文上，指事也。', cn:'指事字。短横在长横之上，表示位置在上方。甲骨文以短竖在长横上表示"上"。', en:'A semantic indicator showing a short stroke above a longer one, indicating the position of being above or on top.', ar:'مؤشر دلالي يُظهر خطاً قصيراً فوق خط أطول، يدل على الموضع العلوي أو فوق.', related:['下','高','天'], note:'上下二字是最早的方位指事字之一' },
-        '下': { category:'指事', original:'底也。指事。', cn:'指事字。短横在长横之下，表示位置在下方，与"上"相对。', en:'A semantic indicator showing a short stroke below a longer one, indicating the position of being below or underneath. Opposite of 上.', ar:'مؤشر دلالي يُظهر خطاً قصيراً تحت خط أطول، يدل على الموضع السفلي. عكس 上.', related:['上','低','底'], note:'上下对举，是汉语最基本的方位概念' },
-        '口': { category:'象形', original:'人所以言食也。象形。', cn:'象形字。像人张开的嘴巴形状。口是人用来说话和进食的器官。', en:'A pictograph of an open mouth. The mouth is the organ humans use for speaking and eating.', ar:'صورة فم مفتوح. الفم هو العضو الذي يستخدمه البشر للكلام والأكل.', related:['吃','说','叫'], note:'口作偏旁时在字左侧，含口的字多与嘴、声音、饮食有关' },
-        '手': { category:'象形', original:'拳也。象形。', cn:'象形字。像手指张开的手掌形状。甲骨文中像五指伸展的手形。', en:'A pictograph of an open hand with fingers spread. Oracle bone script showed all five fingers extended.', ar:'صورة يد مفتوحة بأصابع منتشرة. في نقوش العظام كانت تُظهر الأصابع الخمس ممدودة.', related:['手机','握','拿'], note:'手作偏旁写作"扌"（提手旁），含此偏旁的字多与手的动作有关' },
-        '目': { category:'象形', original:'人眼也。象形。重童子也。', cn:'象形字。像眼睛的形状，外框为眼眶，中间两横为瞳孔。甲骨文中目字是竖立的椭圆形。', en:'A pictograph of an eye: the outer frame represents the eye socket, the inner strokes represent the pupil. In oracle bone script, it was an upright oval.', ar:'صورة عين: الإطار الخارجي يمثل محجر العين، والخطوط الداخلية تمثل البؤبؤ. في نقوش العظام كانت بيضاوية عمودية.', related:['看','眼','盲'], note:'目字后来由竖立变为横置，是汉字演变的典型案例' },
-        '日': { category:'象形', original:'實也。太陽之精不虧。从口一，象形。', cn:'象形字。像太阳的形状，外圆内一点，代表太阳中心。引申为白天、日期。', en:'A pictograph of the sun: a circle with a dot at center representing the sun\'s core. Extended to mean daytime and day (date).', ar:'صورة الشمس: دائرة بنقطة في المنتصف تمثل مركز الشمس. امتد معناه ليشمل النهار والتاريخ.', related:['明','晴','时'], note:'日月同辉为"明"，日字旁的字多与光、时间有关' },
-        '月': { category:'象形', original:'闕也。大陰之精，象形。', cn:'象形字。像月亮的形状，外为弦月弧形，内两横象征月中阴影（古人认为有桂树和玉兔）。', en:'A pictograph of the crescent moon with two inner strokes representing the shadows inside the moon (ancient people imagined a cassia tree and jade rabbit).', ar:'صورة هلال القمر مع خطين داخليين يمثلان الظلال داخل القمر (تخيّل القدماء شجرة وأرنباً).', related:['明','朝','期'], note:'月字作偏旁有时与肉旁混用，需注意区分' },
-        '山': { category:'象形', original:'宣也，宣氣散，生萬物，有石而高，象形。', cn:'象形字。字形像三座山峰并立，中间主峰最高，两侧次之。山能宣发气息、生长万物。', en:'A pictograph of three mountain peaks side by side, with the central peak tallest. Mountains were seen as spreading qi and nurturing all living things.', ar:'صورة ثلاثة قمم جبلية متجاورة، القمة الوسطى هي الأعلى. كانت الجبال تُعدّ ناشرةً للطاقة الحيوية وحاضنةً لكل الكائنات.', related:['岳','峰','岭'], note:'山作部首不变形，含山部的字多与地形、地貌有关' },
-        '水': { category:'象形', original:'準也。北方之行。象衆水並流，中有微陽之氣也。', cn:'象形字。字形像许多水流并行流淌的样子，中竖为主流，旁有波纹。代表北方、流动。', en:'A pictograph showing streams flowing together: the central stroke is the main current, flanked by flowing waves. Associated with the north and movement.', ar:'صورة تُظهر تيارات مائية متوازية: الخط المركزي هو التيار الرئيسي، والجانبان يمثلان الأمواج. مرتبط بالشمال والحركة.', related:['氵','河','海'], note:'水作偏旁写作"氵"（三点水），含此偏旁的字多与水、液体有关' },
-        '火': { category:'象形', original:'燬也。南方之行，炎而上。象形。', cn:'象形字。字形像火焰向上燃烧的样子，上部两笔象征跳跃的火苗，代表南方、热烈。', en:'A pictograph of flames leaping upward. The upper strokes depict dancing flames. Associated with the south and heat.', ar:'صورة ألسنة اللهب ترتفع للأعلى. الخطوط العليا تصوّر النيران المتراقصة. مرتبط بالجنوب والحرارة.', related:['灬','炎','热'], note:'火作偏旁在字底写作"灬"（四点底），如煮、熟、烹' },
-        '木': { category:'象形', original:'冒也。冒地而生，東方之行，從屮，下象其根。', cn:'象形字。上部像树枝，下部像树根，中竖像树干，完整表现了树木的形态。代表东方、生长。', en:'A pictograph of a tree: upper strokes are branches, the center is the trunk, lower strokes are roots. Associated with the east and growth.', ar:'صورة شجرة: الخطوط العليا هي الأغصان، المنتصف هو الجذع، الخطوط السفلية هي الجذور. مرتبط بالشرق والنمو.', related:['林','森','树'], note:'木作偏旁不变形，含木旁的字多与树木、木材有关' },
-        '金': { category:'形声', original:'五色金也。黃為之長，久薶不生衣，百鍊不輕，从革不違，西方之行。', cn:'形声字兼象形。象矿石埋于土中、上有星点闪光之形。代表西方、金属、珍贵。', en:'Both pictographic and phonosemantic. Depicts ore buried in earth with glinting flecks above. Associated with the west, metals, and preciousness.', ar:'صوري وصوتي دلالي معاً. يصوّر خاماً مدفوناً في الأرض مع لمعات فوقه. مرتبط بالغرب والمعادن والثمانة.', related:['银','铁','钱'], note:'金作偏旁写作"钅"（金字旁），含此偏旁的字多与金属有关' },
-        '土': { category:'象形', original:'地之吐生萬物者也。二象地之下、地之中物出形也。', cn:'象形字。像地面之上有凸出的土堆形状，代表大地能生长万物。土是五行之一，居中。', en:'A pictograph of a mound of earth rising above a baseline, representing the earth that nurtures all living things. Earth is the central element of the Five Phases.', ar:'صورة تلة ترابية ترتفع فوق خط الأرض، تمثل الأرض التي ترعى كل الكائنات. التراب هو العنصر المركزي في العناصر الخمسة.', related:['地','坐','在'], note:'土作偏旁多在字左下，含土旁的字多与土地、地点有关' },
-        '心': { category:'象形', original:'人心，土藏，在身之中，象形。博士說以爲火藏。', cn:'象形字。像心脏的形状，三点象征心跳跳动或血液流动。心被认为是思维、情感的器官。', en:'A pictograph of the heart: three dots represent the beating rhythm or blood flow. The heart was considered the organ of thought and emotion.', ar:'صورة القلب: ثلاث نقاط تمثل إيقاع الخفقان أو تدفق الدم. كان القلب يُعدّ عضو التفكير والعاطفة.', related:['忘','想','愁'], note:'心作偏旁有两种写法：竖心旁"忄"（如快、怕）和心字底"心"（如忘、想）' },
-        '言': { category:'指事', original:'直言曰言，論難曰語，从口，𠄡聲。', cn:'指事字。口上加波纹，表示从口中发出声音、语言。引申为说话、言语、文字。', en:'A semantic indicator: wave-like strokes above a mouth, showing sound and language emerging from the lips. Extended to mean speech, words, and writing.', ar:'مؤشر دلالي: خطوط متموجة فوق فم، تُظهر الصوت واللغة تخرج من الشفاه. امتد معناه ليشمل الكلام والكلمات والكتابة.', related:['说','话','语'], note:'言作偏旁写作"讠"（言字旁），含此偏旁的字多与语言、表达有关' },
-        '女': { category:'象形', original:'婦人也。象形。', cn:'象形字。像女性双手交叉跪坐的形态（古代礼节），后泛指女性。', en:'A pictograph of a woman kneeling with arms crossed — a posture of ancient courtesy. Later generalized to mean female or woman.', ar:'صورة امرأة تجثو على ركبتيها بذراعين متقاطعتين - وضعية تأدب قديم. امتدت لاحقاً لتعني الأنثى أو المرأة.', related:['妈','姐','好'], note:'女作偏旁多在字左侧，含女旁的字多与女性、亲属称谓有关' },
-        '子': { category:'象形', original:'十一月，陽氣動，萬物滋，人以爲偁。象形。', cn:'象形字。像婴儿的形状，头大身小，手臂张开，两腿包于襁褓中。引申为儿女、孩子、尊称。', en:'A pictograph of an infant: large head, small body, arms outstretched, legs wrapped in swaddling. Extended to mean child, offspring, and a respectful honorific.', ar:'صورة طفل رضيع: رأس كبير وجسم صغير وذراعان ممدودتان وساقان ملفوفتان. امتدت لتعني طفل وذرية ولقب تشريف.', related:['孩','学','字'], note:'子是地支的第一位，代表鼠，对应午夜时分' },
-        '王': { category:'指事', original:'天下所歸往也。董仲舒曰：古之造文者，三畫而連其中謂之王。三者，天地人也。', cn:'指事字。三横象征天、地、人，中竖将三者贯通，能沟通天地人者为王。', en:'A semantic indicator: three strokes for Heaven, Earth, and Humanity, joined by a central vertical — the one who unites all three is the King.', ar:'مؤشر دلالي: ثلاثة خطوط للسماء والأرض والإنسانية، متصلة بخط عمودي مركزي - من يوحّد الثلاثة هو الملك.', related:['皇','主','玉'], note:'王字加一点为"玉"，因玉德配王，故玉字从王' },
-        '天': { category:'指事', original:'顚也。至高無上，从一大。', cn:'指事字。大字上方加一横，表示人头顶以上、至高无上之处，即天空。', en:'A semantic indicator: a horizontal stroke atop the character for "big person," indicating what is above the human head — the highest of all: the sky and heavens.', ar:'مؤشر دلالي: خط أفقي فوق حرف "شخص كبير"، يدل على ما هو فوق رأس الإنسان - أعلى كل شيء: السماء.', related:['天气','上','云'], note:'天字从一大，一指极高处，大指人形' },
-        '地': { category:'形声', original:'元氣初分，輕清陽爲天，重濁陰爲地，萬物所陳列也。从土也聲。', cn:'形声字。土为形旁（表义），也为声旁（表音）。大地是万物陈列其上的载体，由重浊之气形成。', en:'Phonosemantic: 土 (earth) gives meaning, 也 gives sound. The earth is the bearer of all things, formed from heavy and turbid primordial qi.', ar:'صوتي دلالي: 土 (التراب) يعطي المعنى، 也 يعطي الصوت. الأرض هي حامل كل شيء، تشكّلت من الطاقة الأولية الكثيفة.', related:['土','地方','坐'], note:'地字也声旁的声音在上古汉语中与"地"相近' },
-        '好': { category:'会意', original:'美也，从女子。', cn:'会意字。女和子组合，表示女人抱着孩子，古人认为这是最美好的景象，故引申为好、美好。', en:'Compound ideograph: woman (女) + child (子). A woman holding a child was considered the most beautiful sight to ancient people — hence "good" and "fine."', ar:'حرف تركيبي: امرأة (女) + طفل (子). كانت امرأة تحمل طفلاً أجمل منظر عند القدماء - ومن هنا جاء معنى "جيد" و"جميل".', related:['爱','美','妙'], note:'好字体现古代家庭观：女子有子嗣为好，反映了古代的生育观念' },
-        '你': { category:'形声', original:'（後起字）汝也，从人尔聲。', cn:'形声字（后起字）。人为形旁，尔为声旁。"你"是"爾"的俗字，意为第二人称单数代词。', en:'A later phonosemantic character: 人 (person) gives meaning, 尔 gives sound. A colloquial form of 爾, the second-person singular pronoun.', ar:'حرف صوتي دلالي متأخر: 人 (شخص) يعطي المعنى، 尔 يعطي الصوت. شكل عامي لـ 爾، ضمير المخاطب المفرد.', related:['我','他','您'], note:'"你"字出现较晚，古代多用"汝""尔"表示"你"' },
-        '我': { category:'象形', original:'施身自謂也，或說我，頃頓也，从戈从手。', cn:'会意字。从戈从手，本义为一种有锯齿的兵器。假借为第一人称代词"我"。', en:'Originally showed a toothed weapon (hand + dagger-axe). Borrowed phonetically to mean the first-person pronoun "I/me."', ar:'في الأصل أظهر سلاحاً مسنناً (يد + فأس). اقتُرض صوتياً ليعني ضمير المتكلم "أنا".', related:['你','他','吾'], note:'"我"字本是兵器名，因同音而借用为第一人称，体现了汉字假借的造字方法' },
-        '是': { category:'会意', original:'直也，从日正。', cn:'会意字。日（太阳）加正（正直），太阳照耀正直之物，表示正确、真实。后引申为判断词。', en:'Compound ideograph: sun (日) + upright (正). The sun shining on what is straight and true — meaning correct and real. Later became the copula verb.', ar:'حرف تركيبي: شمس (日) + مستقيم (正). الشمس تشرق على المستقيم والحق - بمعنى صحيح وحقيقي. أصبح لاحقاً فعل الربط.', related:['对','真','为'], note:'是字古义为"正确"，今为判断动词，是汉字义项引申的典型例子' },
-        '说': { category:'形声', original:'説，釋也，一曰談說，从言兌聲。', cn:'形声字。言为形旁（表义：与语言有关），兑为声旁（表音）。本义是解说、阐明，后引申为说话。', en:'Phonosemantic: 言 (speech) gives meaning, 兑 gives sound. Original meaning: explain and clarify. Extended to mean speak and say.', ar:'صوتي دلالي: 言 (الكلام) يعطي المعنى، 兑 يعطي الصوت. المعنى الأصلي: الشرح والتوضيح. امتد ليعني التحدث والقول.', related:['话','讲','言'], note:'说字简化前为"说"，言字旁说明与口头表达有关' },
-        '学': { category:'会意', original:'覺悟也，从教从冖从子，臼聲。', cn:'会意字（简化字）。繁体"學"像双手引导孩子习字的形象，上为爻（学习算术符号），下为子（孩子）。', en:'Compound ideograph (simplified). The traditional form 學 showed hands guiding a child to learn symbols — learning through guidance and practice.', ar:'حرف تركيبي (مبسط). الشكل التقليدي 學 أظهر يدين ترشدان طفلاً لتعلم الرموز - التعلم من خلال التوجيه والممارسة.', related:['习','教','书'], note:'学字体现了中国传统教育理念：在前辈引导下学习' },
-        '吃': { category:'形声', original:'食也，从口气聲。', cn:'形声字。口为形旁（表义：与嘴有关），气（乞）为声旁（表音）。本义为进食，引申为承受、享用。', en:'Phonosemantic: 口 (mouth) gives meaning, 气/乞 gives sound. Original meaning: eat food. Extended to mean endure and enjoy.', ar:'صوتي دلالي: 口 (الفم) يعطي المعنى، 气/乞 يعطي الصوت. المعنى الأصلي: تناول الطعام. امتد ليعني التحمل والاستمتاع.', related:['喝','食','饮'], note:'吃字本义为口吃（结巴），"进食"义是后来引申的，体现了汉字义项的迁移' },
-        '喝': { category:'形声', original:'歡也，从口曷聲。', cn:'形声字。口为形旁，曷为声旁。本义为大声呼喊，后来引申为饮水、喝酒等义项。', en:'Phonosemantic: 口 (mouth) gives meaning, 曷 gives sound. Original meaning: shout or yell. Later extended to mean drink (water, alcohol, etc.).', ar:'صوتي دلالي: 口 (الفم) يعطي المعنى، 曷 يعطي الصوت. المعنى الأصلي: الصراخ. امتد لاحقاً ليعني الشرب (الماء والكحول وغيره).', related:['吃','饮','茶'], note:'"喝"的本义是叱喝（大声呼叫），饮水义是后来引申并约定俗成的' },
-        '爱': { category:'会意', original:'惠也，从心旡聲，旡，慨也。（愛）', cn:'会意字。繁体"愛"中间有"心"，表示发自内心的情感；脚下有夊（行走），表示带着爱奔向对方。', en:'Compound ideograph. The traditional form 愛 contains 心 (heart) at center — love comes from the heart — with 夊 (walking) below, moving toward the beloved.', ar:'حرف تركيبي. الشكل التقليدي 愛 يحتوي على 心 (القلب) في المركز - الحب يأتي من القلب - مع 夊 (المشي) في الأسفل، يتحرك نحو المحبوب.', related:['心','友','情'], note:'简化字"爱"去掉了中间的"心"，有人戏称"无心之爱"' },
-        '朋': { category:'象形', original:'鳳飛，群鳥從以萬數，故以爲朋黨字，从羽。', cn:'象形字。像两串贝壳（古代货币）相连的样子。古代以贝为货币，同类货币串在一起称"朋"，后引申为朋友。', en:'Originally depicted two strings of cowrie shells (ancient currency) linked together. Same-kind shells strung together were called péng — extended to mean friend.', ar:'في الأصل صوّر خيطين من أصداف الودع (العملة القديمة) مرتبطين معاً. أصداف من نفس النوع مجمّعة سُمّيت péng - امتدت لتعني صديق.', related:['友','伴','群'], note:'"朋"字从两个"月"（实为贝串），两贝相连如同志同道合的友人' },
-        '友': { category:'会意', original:'同志爲友，从又从又相對，象二人手相交形。', cn:'会意字。两个"又"（手），两只手相互交握，表示两人相互帮助、亲密友好的关系。', en:'Compound ideograph: two hands (又) reaching toward each other — two people clasping hands in mutual help and friendship.', ar:'حرف تركيبي: يدان (又) تمتدان نحو بعضهما - شخصان يتصافحان في تعاون متبادل وصداقة.', related:['朋','伴','交'], note:'友字是两个"又"字（手形）组合，象征握手之谊' },
-        '老': { category:'会意', original:'考也，七十曰老，从人毛匕，言須髮變白也。', cn:'会意字。像一个驼背老人拄杖而行的形象，上部为长发，下部为人形。七十岁以上称老。', en:'Compound ideograph: a bent figure with long hair leaning on a staff — an elderly person. Those over 70 were called "old."', ar:'حرف تركيبي: شخصية منحنية بشعر طويل تتكئ على عصا - شخص مسن. من تجاوز السبعين سُمّي "늙은".', related:['孝','考','长'], note:'老字作偏旁时简化为"耂"（如考、者、都）' },
-        '师': { category:'会意', original:'二千五百人爲師，从帀，从自。', cn:'会意字。本义为军队（古代二千五百人为一师），由"帀"（包围）和"自"（自身）组成。后引申为老师、师傅。', en:'Original meaning: a military unit (2,500 soldiers). The character shows "surrounding" and "self." Later extended to mean teacher and master.', ar:'المعنى الأصلي: وحدة عسكرية (2500 جندي). الحرف يُظهر "المحاصرة" و"الذات". امتد لاحقاً ليعني المعلم والأستاذ.', related:['老师','军','导'], note:'"师"字从军事概念引申为教育，体现了古代尊师重道的文化' },
-        '书': { category:'象形', original:'著也，从聿，者聲。（書）', cn:'会意兼形声字。繁体"書"从聿（笔）和者（声旁），表示用笔书写。简化字保留了基本笔意。', en:'The traditional form 書 combines 聿 (writing brush) with a phonetic element — the act of writing with a brush. Means book and writing.', ar:'الشكل التقليدي 書 يجمع 聿 (فرشاة الكتابة) مع عنصر صوتي - فعل الكتابة بالفرشاة. يعني كتاب وكتابة.', related:['笔','写','读'], note:'书法（书＋法）即书写的方法，是中国传统艺术' },
-        '车': { category:'象形', original:'輿輪之總名，象形。（車）', cn:'象形字。繁体"車"像从上面俯视一辆有两轮、一轴的马车形状。是古代重要的交通工具。', en:'A pictograph of a chariot viewed from above: two wheels, one axle, the carriage body. One of the most important vehicles in ancient times.', ar:'صورة عربة يُنظر إليها من فوق: عجلتان وعمود محوري وهيكل العربة. أحد أهم وسائل النقل في العصور القديمة.', related:['轮','路','马'], note:'车字简化后与繁体差异很大，繁体"車"更清晰地保留了马车的象形特征' },
-        '语': { category:'形声', original:'論也，从言吾聲。', cn:'形声字。言为形旁（表义：与语言有关），吾为声旁（表音）。本义为谈论、讨论，引申为语言、语句。', en:'Phonosemantic: 言 (speech) gives meaning, 吾 gives sound. Original meaning: discuss and converse. Extended to mean language and sentence.', ar:'صوتي دلالي: 言 (الكلام) يعطي المعنى، 吾 يعطي الصوت. المعنى الأصلي: المناقشة والمحادثة. امتد ليعني اللغة والجملة.', related:['言','话','讲'], note:'语言二字均含言字旁，体现了造字的系统性' },
-        '家': { category:'会意', original:'居也，从宀，豭省聲。', cn:'会意字。宝盖头（宀）表示屋顶，下面是猪（豕）。古代家庭养猪于室内或屋下，有猪的房子就是家。', en:'Compound ideograph: a roof (宀) over a pig (豕). In ancient times, pigs were kept under or inside the house — a house with a pig is a home.', ar:'حرف تركيبي: سقف (宀) فوق خنزير (豕). في العصور القديمة كانت الخنازير تُربّى تحت المنزل أو داخله - منزل به خنزير هو البيت.', related:['宅','室','户'], note:'家字揭示了古代农耕社会的生活方式：家庭养猪是富足的象征' },
-        '来': { category:'象形', original:'周所受瑞麥來麰，一來二縫，象芒束之形，天所來也。', cn:'象形字本义为小麦，甲骨文像麦穗垂下的形状。因"来"与"麦来"谐音，借用为"来到"之意。', en:'Originally a pictograph of wheat with drooping ears. Borrowed phonetically for "arrive/come" since it sounded similar to phrases about wheat arriving from the west.', ar:'في الأصل صورة قمح بسنابل متدلية. اقتُرض صوتياً لمعنى "الوصول/القدوم" لأنه أشبه صوتياً بعبارات عن وصول القمح من الغرب.', related:['去','回','到'], note:'来字是假借字的典型例子：用麦的象形字代替同音词"来到"' },
-        '去': { category:'会意', original:'人相違也，从大去聲。', cn:'会意字。上为大（人形），下为口形，表示人离开某处。本义离开，引申为前往、消除。', en:'Compound ideograph: person (大) above a hollow shape below — a person departing from a place. Original: leave. Extended: go to, remove.', ar:'حرف تركيبي: شخص (大) فوق شكل مجوف في الأسفل - شخص يغادر مكاناً. الأصلي: المغادرة. الموسّع: الذهاب والإزالة.', related:['来','离','走'], note:'去来相对，是汉语最基本的运动方向词对' },
+        '人': { category:'象形', original:'天地之性最貴者也。此籀文象臂脛之形。', cn:'象形字。字形像人侧立、张开双臂的样子。人是天地间最尊贵的生灵。', en:'A pictograph of a person standing sideways with arms outstretched. Human beings are most noble.', ar:'صورة شخص يقف جانباً وذراعيه ممدودتان. البشر هم أشرف المخلوقات بين السماء والأرض.', related:['从','众','大'], note:'人字两笔，一撇一捺，相互支撑，象征人与人的依存' },
+        '大': { category:'象形', original:'天大，地大，人亦大。象人形。', cn:'象形字。像一个人张开双臂双腿站立的正面形象，表示宏大。', en:'A pictograph of a person standing with arms and legs spread wide — conveying greatness.', ar:'صورة شخص يقف وذراعيه وساقيه منتشرتان - تعبر عن العظمة والضخامة.', related:['天','人','太'], note:'大字加一点为"太"，加一横在上为"天"' },
+        '小': { category:'指事', original:'物之微也。从八，丨見而分之。', cn:'指事字。中间一竖，两旁各一点，表示细小的东西被分开。引申为微小之意。', en:'A semantic indicator: a central stroke flanked by two dots, showing something tiny being divided.', ar:'مؤشر دلالي: خط مركزي مع نقطتين على الجانبين، يظهر شيئاً صغيراً يُقسَّم.', related:['少','微','细'], note:'小字中间一竖不能超出两点，否则变成"示"' },
+        '中': { category:'指事', original:'内也。从口，丨，上下通。', cn:'指事字。口形中间一竖贯穿，表示正中央。引申为中国、中等、中心。', en:'A semantic indicator: a vertical stroke piercing through a rectangle, signifying the center.', ar:'مؤشر دلالي: خط عمودي يخترق مستطيلاً، يدل على المركز أو الوسط.', related:['中国','忠','冲'], note:'中国称"中"，古代认为中原是天下之中' },
+        '上': { category:'指事', original:'高也。此古文上，指事也。', cn:'指事字。短横在长横之上，表示位置在上方。', en:'A semantic indicator showing a short stroke above a longer one, indicating position above.', ar:'مؤشر دلالي يُظهر خطاً قصيراً فوق خط أطول، يدل على الموضع العلوي.', related:['下','高','天'], note:'上下二字是最早的方位指事字之一' },
+        '下': { category:'指事', original:'底也。指事。', cn:'指事字。短横在长横之下，表示位置在下方，与"上"相对。', en:'A semantic indicator showing a short stroke below a longer one, indicating position below.', ar:'مؤشر دلالي يُظهر خطاً قصيراً تحت خط أطول، يدل على الموضع السفلي.', related:['上','低','底'], note:'上下对举，是汉语最基本的方位概念' },
+        '口': { category:'象形', original:'人所以言食也。象形。', cn:'象形字。像人张开的嘴巴形状。口是人用来说话和进食的器官。', en:'A pictograph of an open mouth. Organ for speaking and eating.', ar:'صورة فم مفتوح. الفم هو العضو الذي يستخدمه البشر للكلام والأكل.', related:['吃','说','叫'], note:'口作偏旁时在字左侧，含口的字多与嘴有关' },
+        '手': { category:'象形', original:'拳也。象形。', cn:'象形字。像手指张开的手掌形状。甲骨文中像五指伸展的手形。', en:'A pictograph of an open hand with fingers spread.', ar:'صورة يد مفتوحة بأصابع منتشرة.', related:['手机','握','拿'], note:'手作偏旁写作"扌"（提手旁），含此偏旁的字多与手有关' },
+        '目': { category:'象形', original:'人眼也。象形。重童子也。', cn:'象形字。像眼睛的形状，外框为眼眶，中间两横为瞳孔。', en:'A pictograph of an eye: outer frame is eye socket, inner strokes are pupil.', ar:'صورة عين: الإطار الخارجي يمثل محجر العين، والخطوط الداخلية تمثل البؤبؤ.', related:['看','眼','盲'], note:'目字后来由竖立变为横置，是汉字演变的典型案例' },
+        '日': { category:'象形', original:'實也。太陽之精不虧。从口一，象形。', cn:'象形字。像太阳的形状，外圆内一点，代表太阳中心。引申为白天、日期。', en:'A pictograph of the sun: a circle with a dot at center. Extended to mean daytime.', ar:'صورة الشمس: دائرة بنقطة في المنتصف. امتد معناه ليشمل النهار.', related:['明','晴','时'], note:'日月同辉为"明"，日字旁的字多与时间有关' },
+        '月': { category:'象形', original:'闕也。大陰之精，象形。', cn:'象形字。像月亮的形状，外为弦月弧形，内两横象征月中阴影。', en:'A pictograph of the crescent moon with two inner strokes representing shadows.', ar:'صورة هلال القمر مع خطين داخليين يمثلان الظلال.', related:['明','朝','期'], note:'月字作偏旁有时与肉旁混用，需注意区分' },
+        '山': { category:'象形', original:'宣也，宣氣散，生萬物，有石而高，象形。', cn:'象形字。字形像三座山峰并立，中间主峰最高，两侧次之。', en:'A pictograph of three mountain peaks side by side.', ar:'صورة ثلاثة قمم جبلية متجاورة.', related:['岳','峰','岭'], note:'山作部首不变形，含山部的字多与地貌有关' },
+        '水': { category:'象形', original:'準也。北方之行。象衆水並流，中有微陽之氣也。', cn:'象形字。字形像许多水流并行流淌的样子，中竖为主流，旁有波纹。', en:'A pictograph showing streams flowing together.', ar:'صورة تُظهر تيارات مائية متوازية.', related:['氵','河','海'], note:'水作偏旁写作"氵"（三点水）' },
+        '火': { category:'象形', original:'燬也。南方之行，炎而上。象形。', cn:'象形字。字形像火焰向上燃烧的样子，上部两笔象征跳跃的火苗。', en:'A pictograph of flames leaping upward.', ar:'صورة ألسنة اللهب ترتفع للأعلى.', related:['灬','炎','热'], note:'火作偏旁在字底写作"灬"（四点底）' },
+        '木': { category:'象形', original:'冒也。冒地而生，東方之行，從屮，下象其根。', cn:'象形字。上部像树枝，下部像树根，中竖像树干，完整表现了树木的形态。', en:'A pictograph of a tree: upper branches, center trunk, lower roots.', ar:'صورة شجرة: الخطوط العليا أغصان والوسطى جذع والسفلية جذور.', related:['林','森','树'], note:'木作偏旁不变形' },
+        '金': { category:'形声', original:'五色金也。黃為之長，久薶不生衣，百鍊不輕，从革不違，西方之行。', cn:'形声字兼象形。象矿石埋于土中、上有星点闪光之形。代表西方、金属、珍贵。', en:'Both pictographic and phonosemantic. Depicts ore buried in earth with glinting flecks above.', ar:'صوري وصوتي. يصوّر خاماً مدفوناً في الأرض مع لمعات فوقه.', related:['银','铁','钱'], note:'金作偏旁写作"钅"（金字旁）' },
+        '土': { category:'象形', original:'地之吐生萬物者也。二象地之下、地之中物出形也。', cn:'象形字。像地面之上有凸出的土堆形状，代表大地能生长万物。', en:'A pictograph of a mound of earth rising above a baseline.', ar:'صورة تلة ترابية ترتفع فوق خط الأرض.', related:['地','坐','在'], note:'土作偏旁多在字左下' },
+        '心': { category:'象形', original:'人心，土藏，在身之中，象形。博士說以爲火藏。', cn:'象形字。像心脏的形状，三点象征心跳跳动或血液流动。', en:'A pictograph of the heart: three dots represent the beating rhythm.', ar:'صورة القلب: ثلاث نقاط تمثل إيقاع الخفقان.', related:['忘','想','愁'], note:'心作偏旁有两种写法：竖心旁"忄"和心字底"心"' },
+        '言': { category:'指事', original:'直言曰言，論難曰語，从口，𠄡聲。', cn:'指事字。口上加波纹，表示从口中发出声音、语言。引申为说话、文字。', en:'A semantic indicator: wave-like strokes above a mouth, showing sound.', ar:'مؤشر دلالي: خطوط متموجة فوق فم، تُظهر الصوت.', related:['说','话','语'], note:'言作偏旁写作"讠"（言字旁）' },
+        '女': { category:'象形', original:'婦人也。象形。', cn:'象形字。像女性双手交叉跪坐的形态（古代礼节），后泛指女性。', en:'A pictograph of a woman kneeling with arms crossed.', ar:'صورة امرأة تجثو على ركبتيها بذراعين متقاطعتين.', related:['妈','姐','好'], note:'女作偏旁多在字左侧' },
+        '子': { category:'象形', original:'十一月，陽氣動，萬物滋，人以爲偁。象形。', cn:'象形字。像婴儿的形状，头大身小，手臂张开。引申为孩子、尊称。', en:'A pictograph of an infant: large head, small body, arms outstretched.', ar:'صورة طفل رضيع: رأس كبير وجسم صغير وذراعان ممدودتان.', related:['孩','学','字'], note:'子是地支的第一位，代表鼠' },
+        '王': { category:'指事', original:'天下所歸往也。董仲舒曰：古之造文者，三畫而連其中謂之王。', cn:'指事字。三横象征天、地、人，中竖将三者贯通，能沟通天地人者为王。', en:'A semantic indicator: three strokes for Heaven, Earth, and Humanity, joined by a central vertical.', ar:'مؤشر دلالي: ثلاثة خطوط للسماء والأرض والإنسانية، متصلة بخط عمودي مركزي.', related:['皇','主','玉'], note:'王字加一点为"玉"' },
+        '天': { category:'指事', original:'顚也。至高無上，从一大。', cn:'指事字。大字上方加一横，表示人头顶以上、至高无上之处，即天空。', en:'A semantic indicator: a horizontal stroke atop "big person," indicating highest of all: sky.', ar:'مؤشر دلالي: خط أفقي فوق حرف "شخص كبير"، يدل على ما هو أعلى من كل شيء: السماء.', related:['天气','上','云'], note:'天字从一大，一指极高处，大指人形' },
+        '地': { category:'形声', original:'元氣初分，輕清陽爲天，重濁陰爲地，萬物所陳列也。从土也聲。', cn:'形声字。土为形旁（表义），也为声旁（表音）。', en:'Phonosemantic: 土 (earth) gives meaning, 也 gives sound.', ar:'صوتي دلالي: 土 (التراب) يعطي المعنى، 也 يعطي الصوت.', related:['土','地方','坐'], note:'地字也声旁的声音在上古汉语中与"地"相近' },
+        '好': { category:'会意', original:'美也，从女子。', cn:'会意字。女和子组合，表示女人抱着孩子，古人认为这是最美好的景象，故引申为好、美好。', en:'Compound ideograph: woman (女) + child (子). A woman holding a child was considered the most beautiful sight.', ar:'حرف تركيبي: امرأة (女) + طفل (子). كانت امرأة تحمل طفلاً أجمل منظر عند القدماء.', related:['爱','美','妙'], note:'好字体现古代家庭观' },
+        '你': { category:'形声', original:'（後起字）汝也，从人尔聲。', cn:'形声字（后起字）。人为形旁，尔为声旁。"你"是"爾"的俗字。', en:'A later phonosemantic character: 人 gives meaning, 尔 gives sound. Colloquial form of 爾.', ar:'حرف صوتي دلالي متأخر: 人 يعطي المعنى، 尔 يعطي الصوت.', related:['我','他','您'], note:'"你"字出现较晚，古代多用"汝""尔"' },
+        '我': { category:'象形', original:'施身自謂也，或說我，頃頓也，从戈从手。', cn:'会意字。从戈从手，本义为一种有锯齿的兵器。假借为第一人称代词"我"。', en:'Originally showed a toothed weapon. Borrowed phonetically to mean the first-person pronoun "I/me."', ar:'في الأصل أظهر سلاحاً مسنناً. اقتُرض صوتياً ليعني ضمير المتكلم "أنا".', related:['你','他','吾'], note:'"我"字本是兵器名，因同音而借用' },
+        '是': { category:'会意', original:'直也，从日正。', cn:'会意字。日（太阳）加正（正直），太阳照耀正直之物，表示正确、真实。后引申为判断词。', en:'Compound ideograph: sun (日) + upright (正). The sun shining on what is straight.', ar:'حرف تركيبي: شمس (日) + مستقيم (正). الشمس تشرق على المستقيم.', related:['对','真','为'], note:'是字古义为"正确"，今为判断动词' },
+        '说': { category:'形声', original:'説，釋也，一曰談說，从言兌聲。', cn:'形声字。言为形旁，兑为声旁。本义是解说、阐明，后引申为说话。', en:'Phonosemantic: 言 gives meaning, 兑 gives sound. Original meaning: explain.', ar:'صوتي دلالي: 言 يعطي المعنى، 兑 يعطي الصوت. المعنى الأصلي: الشرح.', related:['话','讲','言'], note:'言字旁说明与口头表达有关' },
+        '学': { category:'会意', original:'覺悟也，从教从冖从子，臼聲。', cn:'会意字（简化字）。繁体"學"像双手引导孩子习字的形象，上为爻（学习算术符号），下为子（孩子）。', en:'Compound ideograph (simplified). Traditional 學 showed hands guiding a child to learn.', ar:'حرف تركيبي. الشكل التقليدي أظهر يدين ترشدان طفلاً للتعلم.', related:['习','教','书'], note:'学字体现了中国传统教育理念' },
+        '吃': { category:'形声', original:'食也，从口气聲。', cn:'形声字。口为形旁，气（乞）为声旁。本义为进食。', en:'Phonosemantic: 口 gives meaning, 气/乞 gives sound. Original meaning: eat food.', ar:'صوتي دلالي: 口 يعطي المعنى، 气/乞 يعطي الصوت. المعنى الأصلي: الأكل.', related:['喝','食','饮'], note:'吃字本义为口吃（结巴），"进食"义是引申的' },
+        '喝': { category:'形声', original:'歡也，从口曷聲。', cn:'形声字。口为形旁，曷为声旁。本义为大声呼喊，后来引申为饮水、喝酒等。', en:'Phonosemantic: 口 gives meaning, 曷 gives sound. Original meaning: shout. Extended to drink.', ar:'صوتي دلالي: 口 يعطي المعنى، 曷 يعطي الصوت. الأصل: الصراخ. امتد للشرب.', related:['吃','饮','茶'], note:'"喝"的本义是叱喝' },
+        '爱': { category:'会意', original:'惠也，从心旡聲，旡，慨也。（愛）', cn:'会意字。繁体"愛"中间有"心"，表示发自内心的情感；脚下有夊，表示奔向对方。', en:'Compound ideograph. Traditional 愛 contains 心 (heart) at center with walking feet below.', ar:'حرف تركيبي. التقليدي يحتوي على 心 في المركز مع أقدام تمشي.', related:['心','友','情'], note:'简化字"爱"去掉了中间的"心"' },
+        '朋': { category:'象形', original:'鳳飛，群鳥從以萬數，故以爲朋黨字，从羽。', cn:'象形字。像两串贝壳相连的样子。古代以贝为货币，串在一起称"朋"，后引申为朋友。', en:'Originally depicted two strings of cowrie shells linked together. Extended to mean friend.', ar:'في الأصل صوّر خيطين من أصداف الودع مرتبطين. امتد ليعني صديق.', related:['友','伴','群'], note:'"朋"字从两个"月"（实为贝串）' },
+        '友': { category:'会意', original:'同志爲友，从又从又相對，象二人手相交形。', cn:'会意字。两个"又"（手），两只手相互交握，表示两人相互帮助的关系。', en:'Compound ideograph: two hands (又) reaching toward each other in mutual help.', ar:'حرف تركيبي: يدان (又) تمتدان نحو بعضهما في تعاون متبادل.', related:['朋','伴','交'], note:'友字象征握手之谊' },
+        '老': { category:'会意', original:'考也，七十曰老，从人毛匕，言須髮變白也。', cn:'会意字。像一个驼背老人拄杖而行的形象。七十岁以上称老。', en:'Compound ideograph: a bent figure with long hair leaning on a staff.', ar:'حرف تركيبي: شخصية منحنية بشعر طويل تتكئ على عصا.', related:['孝','考','长'], note:'老字作偏旁时简化为"耂"' },
+        '师': { category:'会意', original:'二千五百人爲師，从帀，从自。', cn:'会意字。本义为军队（古代二千五百人为一师）。后引申为老师、师傅。', en:'Original meaning: a military unit. Later extended to mean teacher and master.', ar:'المعنى الأصلي: وحدة عسكرية. امتد لاحقاً ليعني المعلم والأستاذ.', related:['老师','军','导'], note:'"师"字从军事概念引申为教育' },
+        '书': { category:'象形', original:'著也，从聿，者聲。（書）', cn:'会意兼形声字。繁体"書"从聿（笔）和者（声旁），表示用笔书写。', en:'Traditional form 書 combines 聿 (writing brush) with a phonetic element.', ar:'الشكل التقليدي 書 يجمع 聿 (فرشاة الكتابة) مع عنصر صوتي.', related:['笔','写','读'], note:'书法是中国传统艺术' },
+        '车': { category:'象形', original:'輿輪之總名，象形。（車）', cn:'象形字。繁体"車"像从上面俯视一辆有两轮、一轴的马车形状。', en:'A pictograph of a chariot viewed from above: two wheels, one axle.', ar:'صورة عربة يُنظر إليها من فوق: عجلتان وعمود محوري.', related:['轮','路','马'], note:'车字简化后与繁体差异很大' },
+        '语': { category:'形声', original:'論也，从言吾聲。', cn:'形声字。言为形旁，吾为声旁。本义为谈论、讨论，引申为语言。', en:'Phonosemantic: 言 gives meaning, 吾 gives sound. Extended to mean language.', ar:'صوتي دلالي: 言 يعطي المعنى، 吾 يعطي الصوت. امتد ليعني اللغة.', related:['言','话','讲'], note:'语言二字均含言字旁' },
+        '家': { category:'会意', original:'居也，从宀，豭省聲。', cn:'会意字。宝盖头（宀）表示屋顶，下面是猪（豕）。古代家庭养猪于室内，有猪就是家。', en:'Compound ideograph: a roof (宀) over a pig (豕). A house with a pig is a home.', ar:'حرف تركيبي: سقف (宀) فوق خنزير (豕). منزل به خنزير هو البيت.', related:['宅','室','户'], note:'家字揭示了古代农耕社会的特征' },
+        '来': { category:'象形', original:'周所受瑞麥來麰，一來二縫，象芒束之形，天所來也。', cn:'象形字本义为小麦。因"来"与"麦来"谐音，借用为"来到"之意。', en:'Originally a pictograph of wheat. Borrowed phonetically for "arrive/come".', ar:'في الأصل صورة قمح. اقتُرض صوتياً لمعنى "الوصول/القدوم".', related:['去','回','到'], note:'来字是假借字的典型例子' },
+        '去': { category:'会意', original:'人相違也，从大去聲。', cn:'会意字。上为大（人形），下为口形，表示人离开某处。', en:'Compound ideograph: person (大) departing from a place.', ar:'حرف تركيبي: شخص (大) يغادر مكاناً.', related:['来','离','走'], note:'去来相对' },
     };
 
     function analyzeAndDisplayComponents(char, data, charIdx) {
@@ -1091,7 +1114,7 @@
     function applyAnimColors() {
         if (writers.length === 0) return;
         writers.forEach((w, idx) => {
-            const container = document.getElementById(`target_1_${idx}`);
+            const container = document.getElementById(`target_anim_${idx}`);
             if (!container) return;
             
             // 获取 HanziWriter 生成的底层原生 SVG 节点
@@ -1220,7 +1243,7 @@
 
         transRow.innerHTML = `
             <!-- 新增：词语分解翻译区 -->
-            <div id="word_trans_container" style="display: flex; flex-wrap: wrap; gap: 15px; padding: 15px; border-bottom: 2px solid #eee; background: #fafafa; align-items: center; min-height: 80px;">
+            <div id="word_trans_container" style="display: flex; flex-wrap: wrap; gap: 15px; padding: 15px; border-bottom: 2px solid #eee; background: #fafafa; align-items: center; min-height: 90px;">
                 <div style="color:#999; font-size:14px; font-weight:bold; text-align:center; margin-right: 5px;">词汇<br><span style="font-size:11px;font-weight:normal;">Words</span></div>
                 <!-- 词语将通过JS渲染在这里 -->
             </div>
@@ -1244,9 +1267,15 @@
         words.forEach(word => {
             const wordBox = document.createElement('div');
             wordBox.className = 'word-trans-box'; // 添加类名方便后续导出绘图时提取
-            wordBox.style.cssText = "background: white; border: 1px solid #ddd; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); min-width: 60px;";
+            wordBox.style.cssText = "background: white; border: 1px solid #ddd; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); min-width: 60px;";
+            
+            // 获取并生成带有声调的标准拼音
+            const pinyinStr = pinyinPro.pinyin(word);
+
             wordBox.innerHTML = `
-                <span style="font-weight: bold; color: #E74C3C; font-size: 16px; margin-bottom: 4px;">${word}</span>
+                <!-- 词语拼音层 -->
+                <span class="word-py-trans" style="color: #FF8C42; font-size: 13px; margin-bottom: 2px; font-family: 'Arial', sans-serif;">${pinyinStr}</span>
+                <span class="word-zh-text" style="font-weight: bold; color: #E74C3C; font-size: 16px; margin-bottom: 4px;">${word}</span>
                 <span class="word-en-trans" style="color: #666; font-size: 12px; font-style: italic;">...</span>
                 <span class="word-ar-trans" style="color: #8E44AD; font-size: 13px; font-weight: bold; font-family: Arial; margin-top: 2px;" dir="rtl">...</span>
             `;
@@ -1341,7 +1370,8 @@
     async function downloadSentenceWorksheet() {
         const inputText = document.getElementById('charInput').value || '句子';
         const cellSize = 400; const pHeight = 120;
-        const transHeight = 420; // 增加了高度以容纳词汇区 + 句子区
+        // 高度适当增加以完美容纳新增的“词组拼音层”
+        const transHeight = 470; 
         const sheetCanvas = document.getElementById('sheetCanvas'); const ctx = sheetCanvas.getContext('2d');
         const allChars = Array.from(inputText); const count = allChars.length;
         
@@ -1385,26 +1415,27 @@
         ctx.lineWidth = 2;
         ctx.strokeRect(0, transYStart, canvasWidth, transHeight);
 
-        // 提取网页中已经获取到的词语翻译数据
+        // 提取网页中已经获取到的词语翻译及拼音数据
         const wordBoxes = document.querySelectorAll('.word-trans-box');
         let wordsData = [];
         wordBoxes.forEach(box => {
             wordsData.push({
-                zh: box.querySelector('span:nth-child(1)').textContent,
+                zh: box.querySelector('.word-zh-text').textContent,
+                py: box.querySelector('.word-py-trans').textContent, 
                 en: box.querySelector('.word-en-trans').textContent,
                 ar: box.querySelector('.word-ar-trans').textContent
             });
         });
 
         // -----------------------------
-        // A区：词汇精讲区域 (高度: 200px)
+        // A区：词汇精讲区域 (高度: 240px)
         // -----------------------------
         let currentX = 40;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#999";
         ctx.font = "bold 35px 'PingFang SC'";
-        ctx.fillText("词汇(Words):", currentX, transYStart + 100);
+        ctx.fillText("词汇(Words):", currentX, transYStart + 115);
         currentX += 240;
 
         for(let w of wordsData) {
@@ -1414,37 +1445,48 @@
             let enW = ctx.measureText(w.en).width;
             ctx.font = "bold 30px Arial";
             let arW = ctx.measureText(w.ar).width;
+            ctx.font = "bold 28px Arial"; // 拼音测宽
+            let pyW = ctx.measureText(w.py).width;
 
-            let blockW = Math.max(zhW, enW, arW) + 50;
+            let blockW = Math.max(zhW, enW, arW, pyW) + 50;
             let centerX = currentX + blockW / 2;
             
-            // 绘制词汇块的浅色背景与边框
+            // 绘制词汇块的浅色背景与边框 (高度调整至210以容纳拼音)
             ctx.fillStyle = "#fafafa";
-            ctx.fillRect(currentX, transYStart + 15, blockW, 170);
+            ctx.fillRect(currentX, transYStart + 15, blockW, 210);
             ctx.strokeStyle = "#ddd";
             ctx.lineWidth = 2;
-            ctx.strokeRect(currentX, transYStart + 15, blockW, 170);
+            ctx.strokeRect(currentX, transYStart + 15, blockW, 210);
 
             ctx.textAlign = "center";
+            
+            // 1. 新增的拼音层
+            ctx.fillStyle = "#FF8C42";
+            ctx.font = "bold 28px Arial";
+            ctx.fillText(w.py, centerX, transYStart + 45);
+
+            // 2. 汉字层
             ctx.fillStyle = "#E74C3C";
             ctx.font = "bold 45px 'PingFang SC'";
-            ctx.fillText(w.zh, centerX, transYStart + 50);
+            ctx.fillText(w.zh, centerX, transYStart + 100);
 
+            // 3. 英文层
             ctx.fillStyle = "#666";
             ctx.font = "italic 30px Arial";
-            ctx.fillText(w.en, centerX, transYStart + 105);
+            ctx.fillText(w.en, centerX, transYStart + 155);
 
+            // 4. 阿拉伯语层
             ctx.fillStyle = "#8E44AD";
             ctx.font = "bold 30px Arial";
-            ctx.fillText(w.ar, centerX, transYStart + 155);
+            ctx.fillText(w.ar, centerX, transYStart + 205);
 
             currentX += blockW + 20; // 每个词块间隔
         }
 
         // -----------------------------
-        // B区：整句翻译区域 (高度: 220px)
+        // B区：整句翻译区域 (高度下移适配拼音层)
         // -----------------------------
-        const sentenceYStart = transYStart + 200;
+        const sentenceYStart = transYStart + 240; // 坐标顺延
         
         // 词语区和句子区之间的实线分割
         ctx.beginPath();
