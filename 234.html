@@ -1543,6 +1543,34 @@
                 display: block !important;
                 text-align: center !important;
             }
+            .component-flow-row {
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 12px !important;
+                flex-wrap: nowrap !important;
+                width: 100% !important;
+            }
+            .component-flow-arrow {
+                order: 1;
+                width: min(100%, 240px);
+                text-align: center;
+                line-height: 1;
+                margin: -2px 0 2px;
+                font-size: 34px !important;
+            }
+            .component-flow-arrow::before {
+                content: '↓';
+            }
+            .component-flow-arrow {
+                font-size: 0 !important;
+            }
+            .component-flow-row .component-cell-wrap:first-child {
+                order: 0;
+            }
+            .component-flow-row .component-cell-wrap:not(:first-child) {
+                order: 2;
+            }
             .sg-divider,
             .sg-pebble,
             .sg-swipe-hint,
@@ -3629,11 +3657,13 @@
 
         // ── 格子行：完整字 → 各部件 ──
         const row = document.createElement('div');
+        row.className = 'component-flow-row';
         row.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;';
 
         // 辅助：创建一个带米字格和汉字SVG的格子
         function makeCell(strokes, color) {
             const wrap = document.createElement('div');
+            wrap.className = 'component-cell-wrap';
             wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
             const box = document.createElement('div');
             box.style.cssText = 'width:' + SZ + 'px;height:' + SZ + 'px;position:relative;border:1px solid #ddd;border-radius:4px;background:#fafafa;overflow:hidden;flex-shrink:0;';
@@ -3669,6 +3699,7 @@
 
         // 箭头
         const arr = document.createElement('div');
+        arr.className = 'component-flow-arrow';
         arr.style.cssText = 'font-size:32px;color:#8b9791;flex-shrink:0;';
         arr.textContent = '→';
         row.appendChild(arr);
