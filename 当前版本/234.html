@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <title>斑斓汉字 - 笔墨纸砚</title>
 
     <!-- ====== 📱 手机端调试浮层：任何JS报错都会在屏幕底部红条显示 ====== -->
@@ -52,7 +52,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- html2canvas 用于导出图片和PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- 背景音乐：使用原生 audio 元素,无需外部脚本 -->
+    <!-- 背景音乐：HTML5 Audio + 外部 URL（见脚本 MUSIC_URL） -->
     <style>
         /* ====================================================
            【视觉重构】图片风格 1:1 复刻
@@ -1616,7 +1616,7 @@
                 grid-column: 1 / -1;
             }
             /* 音量滑块区域：放到最后占满 */
-            .controls-bar > div[style*="border-left"] {
+            .controls-bar > .bgm-controls {
                 grid-column: 1 / -1;
                 justify-content: center;
             }
@@ -1823,13 +1823,191 @@
             .sg-intro { font-size: 12px; padding: 10px 12px; }
         }
 
+        /* ================================================================
+           【手机竖屏专项适配 v4】360px～430px · 无横向滚动 · 触控优化
+           ================================================================ */
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* 背景音乐控制面板 */
+        .bgm-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 6px 12px;
+            border-left: 1px dashed var(--border-light);
+            margin-left: 4px;
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .bgm-btn {
+            min-width: 44px;
+            min-height: 44px;
+            padding: 8px 14px !important;
+            font-size: 18px;
+            line-height: 1;
+            background: var(--ink-gray);
+            border: 1px solid #667e74;
+            flex-direction: row !important;
+        }
+        .bgm-btn span { display: none !important; }
+        .bgm-icon {
+            font-size: 16px;
+            opacity: 0.75;
+        }
+        .bgm-status {
+            font-size: 12px;
+            color: var(--mo-mid);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            min-width: 3.5em;
+        }
+        .bgm-volume-slider {
+            width: min(88px, 28vw);
+            min-height: 44px;
+            flex: 0 1 auto;
+        }
+        .bgm-error {
+            display: none;
+            flex: 1 1 100%;
+            font-size: 11px;
+            color: var(--zhusha);
+            text-align: center;
+            letter-spacing: 0.3px;
+            line-height: 1.35;
+        }
+
+        /* 竖屏手机：360px～430px 优先 */
+        @media (max-width: 430px) and (orientation: portrait),
+               (max-width: 430px) {
+            .title-sub-row {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+            }
+            .title-icons-left,
+            .title-icons-right {
+                flex: 0 0 auto;
+            }
+            .header-title-sub {
+                flex: 1 1 100%;
+                order: 3;
+            }
+            .header-title .credit-line {
+                font-size: 10px;
+                letter-spacing: 0.5px;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            .controls-bar {
+                grid-template-columns: 1fr !important;
+            }
+            .controls-bar > button,
+            .controls-bar > .btn-link {
+                min-height: 48px;
+            }
+            .bgm-controls {
+                width: 100%;
+                margin-left: 0;
+                border-left: none;
+                border-top: 1px dashed var(--border-light);
+                padding-top: 10px;
+                justify-content: center;
+            }
+            .modal {
+                width: min(94vw, 100%) !important;
+                max-width: 100% !important;
+                box-sizing: border-box;
+            }
+            .sg-yong-col,
+            .sg-left-col,
+            .sg-right-col {
+                flex: 0 0 min(calc(100% - 20px), 100%) !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+            .word-row-container > .card {
+                flex: 0 0 min(calc(100% - 20px), 100%) !important;
+                max-width: 100% !important;
+            }
+            .struct-body {
+                flex-direction: column !important;
+            }
+            .struct-comp-block {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .card-three-cols {
+                flex-direction: column !important;
+            }
+            input[type="text"],
+            select,
+            .voice-select {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            img, canvas, svg, video, iframe {
+                max-width: 100%;
+                height: auto;
+            }
+            table {
+                max-width: 100%;
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .ink-canvas {
+                width: 100%;
+                height: 100%;
+            }
+            button, .btn-link, .mic-btn, .bgm-btn, .acc-header {
+                min-height: 44px;
+            }
+            .sg-top-row .sg-yong-col,
+            .sg-top-row .sg-left-col,
+            .sg-top-row .sg-right-col {
+                flex: 0 0 min(calc(100% - 32px), 100%);
+                min-width: 0;
+                max-width: 100%;
+            }
+            .word-row-container > .card {
+                flex: 0 0 min(calc(100% - 24px), 100%);
+                max-width: 100%;
+            }
+            .controls-bar > .bgm-controls {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .controls-bar > .bgm-controls {
+                grid-column: 1 / -1;
+                justify-content: center;
+                width: 100%;
+                border-left: none;
+                border-top: 1px dashed var(--border-light);
+                margin-left: 0;
+                padding-top: 10px;
+            }
+        }
+
     </style>
 </head>
 <body>
-<!-- 背景音乐：嵌入式自动播放 -->
-<audio id="bgmAudio" loop autoplay style="display:none;">
-    <source src="./bimo_bgm_1.mp3" type="audio/mpeg">
-</audio>
+<!-- 背景音乐：HTML5 Audio，源地址由 MUSIC_URL 统一配置 -->
+<audio id="bgmAudio" loop preload="metadata" playsinline style="display:none;"></audio>
 
 
 <!-- 全局水墨晕染装饰层 -->
@@ -2212,10 +2390,13 @@
             <button class="btn-toggle-dl" onclick="toggleDownloadMenu()" id="btnToggleDl">⬇ 下载中心<span class="btn-en">Download Center</span><span class="btn-ar">مركز التنزيل</span></button>
             <button class="btn-feedback" onclick="openFeedback()">💬 用户反馈<span class="btn-en">Feedback</span><span class="btn-ar">التغذية الراجعة</span></button>
             
-            <!-- 背景音乐控件:本地中国风轻音乐 + 音量调节 -->
-            <div style="display:flex; align-items:center; gap:6px; padding:0 8px; border-left:1px dashed var(--border-light); margin-left:4px;">
-                <span style="font-size:16px; opacity:0.7;" title="背景音乐:竹与纸灯笼(中国风钢琴轻音乐)">🎵</span>
-                <input type="range" id="bgmVolume" class="rate-slider" min="0" max="100" value="40" oninput="changeBgmVolume(this.value)" style="width:60px;" title="滑动调节音量">
+            <!-- 背景音乐控件：外部链接 · 播放/暂停 · 音量 · 状态 -->
+            <div class="bgm-controls" id="bgmControls" title="背景音乐">
+                <button type="button" class="bgm-btn" id="bgmToggleBtn" onclick="toggleBgm()" aria-label="播放或暂停背景音乐">▶</button>
+                <span class="bgm-icon" aria-hidden="true">🎵</span>
+                <span class="bgm-status" id="bgmStatus">待播放</span>
+                <input type="range" id="bgmVolume" class="rate-slider bgm-volume-slider" min="0" max="100" value="40" oninput="changeBgmVolume(this.value)" title="滑动调节音量" aria-label="背景音乐音量">
+                <span class="bgm-error" id="bgmError" role="alert"></span>
             </div>
 
             <div class="divider-vert" style="display:none;"></div>
@@ -4320,28 +4501,108 @@
     function downloadTtsStudio() { alert("下载 MP3 功能已触发。"); }
 
     // ==========================================
-    // 背景音乐引擎 (已根据要求移除自带音乐，仅保留音量控制接口占位)
+    // 背景音乐引擎 — 外部 URL · HTML5 Audio
+    // 更换音乐：仅修改下方 MUSIC_URL 即可
     // ==========================================
+    const MUSIC_URL = "./bimo_bgm_1.mp3";
 
-    // 统一的音量调节接口
-    function changeBgmVolume(val) {
-        const audio = document.getElementById('bgmAudio');
-        if (audio) audio.volume = val / 100;
-    }
-    // 初始化音量
-    window.addEventListener('DOMContentLoaded', function() {
+    let bgmUserInteracted = false;
+
+    function initBgmEngine() {
         const audio = document.getElementById('bgmAudio');
         const vol = document.getElementById('bgmVolume');
-        if (audio && vol) audio.volume = vol.value / 100;
-        // 自动播放兼容处理
-        if (audio) {
-            audio.play().catch(() => {
-                document.addEventListener('click', function startPlay() {
-                    audio.play();
-                    document.removeEventListener('click', startPlay);
-                }, { once: true });
-            });
+        if (!audio) return;
+
+        audio.loop = true;
+        audio.src = MUSIC_URL;
+        if (vol) audio.volume = Number(vol.value) / 100;
+
+        audio.addEventListener('playing', updateBgmUi);
+        audio.addEventListener('pause', updateBgmUi);
+        audio.addEventListener('waiting', updateBgmUi);
+        audio.addEventListener('ended', updateBgmUi);
+        audio.addEventListener('canplay', updateBgmUi);
+        audio.addEventListener('loadeddata', updateBgmUi);
+        audio.addEventListener('error', onBgmLoadError);
+
+        updateBgmUi();
+        audio.load();
+    }
+
+    function updateBgmUi() {
+        const audio = document.getElementById('bgmAudio');
+        const status = document.getElementById('bgmStatus');
+        const btn = document.getElementById('bgmToggleBtn');
+        if (!audio || !status) return;
+
+        if (audio.error) {
+            status.textContent = '加载失败';
+            if (btn) { btn.textContent = '⚠'; btn.setAttribute('aria-label', '音乐加载失败'); }
+            return;
         }
+
+        if (audio.paused) {
+            status.textContent = bgmUserInteracted ? '已暂停' : '待播放';
+            if (btn) { btn.textContent = '▶'; btn.setAttribute('aria-label', '播放背景音乐'); }
+        } else {
+            status.textContent = '播放中';
+            if (btn) { btn.textContent = '⏸'; btn.setAttribute('aria-label', '暂停背景音乐'); }
+        }
+    }
+
+    function onBgmLoadError() {
+        const err = document.getElementById('bgmError');
+        const status = document.getElementById('bgmStatus');
+        if (status) status.textContent = '加载失败';
+        if (err) {
+            err.textContent = '音乐加载失败，请检查 MUSIC_URL 链接是否可访问';
+            err.style.display = 'block';
+        }
+        updateBgmUi();
+    }
+
+    function clearBgmError() {
+        const err = document.getElementById('bgmError');
+        if (err) {
+            err.textContent = '';
+            err.style.display = 'none';
+        }
+    }
+
+    function changeBgmVolume(val) {
+        const audio = document.getElementById('bgmAudio');
+        if (audio) audio.volume = Number(val) / 100;
+    }
+
+    function toggleBgm() {
+        const audio = document.getElementById('bgmAudio');
+        if (!audio) return;
+
+        bgmUserInteracted = true;
+        clearBgmError();
+
+        if (audio.error) {
+            onBgmLoadError();
+            return;
+        }
+
+        if (audio.paused) {
+            if (!audio.src) audio.src = MUSIC_URL;
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(function() {
+                    const status = document.getElementById('bgmStatus');
+                    if (status) status.textContent = '请点击播放';
+                });
+            }
+        } else {
+            audio.pause();
+        }
+        updateBgmUi();
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        initBgmEngine();
     });
 
     // --- 【新增】背景印章初始化引擎 ---
