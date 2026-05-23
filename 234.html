@@ -566,18 +566,18 @@
 
         .components-panel { width: 100%; box-sizing: border-box; }
         .worksheet-panel { width: 100%; box-sizing: border-box; }
-        .worksheet-row-wrapper { overflow-x: auto; padding-bottom: 10px; margin-top: 15px; display: flex; justify-content: center; }
+        .worksheet-row-wrapper { overflow-x: visible; overflow-y: visible; padding-bottom: 10px; margin-top: 15px; display: flex; justify-content: center; }
         .worksheet-row { display: flex; flex-wrap: nowrap; gap: 2px; background: var(--border-light); padding: 2px; width: fit-content; margin-bottom: 10px;}
-        .sentence-cell-box { display: flex; flex-direction: column; align-items: center; background: #fff; flex-shrink: 0; }
-        .worksheet-cell { width: 85px; height: 85px; position: relative; background: #fff; flex-shrink: 0; box-sizing: border-box; }
+        .sentence-cell-box { display: flex; flex-direction: column; align-items: center; background: #fff; flex-shrink: 0; box-sizing: border-box; border: 1px solid #b0b8b3; margin: -1px 0 0 -1px; overflow: hidden; }
+        .worksheet-cell { width: 85px; height: 85px; position: relative; background:#fff; flex-shrink: 0; box-sizing: border-box; }
         .worksheet-cell svg { display: block; width: 100% !important; height: 100% !important; }
-        .worksheet-grid-row { display: grid; gap: 1px; background: #b0b8b3; padding: 1px; width: fit-content; max-width: 100%; flex-shrink: 0; margin-left: auto; margin-right: auto; }
+        .worksheet-grid-row { display: grid; gap: 0; background: transparent; padding: 1px 0 0 1px; width: fit-content; max-width: 100%; flex-shrink: 0; margin-left: auto; margin-right: auto; justify-content: center; }
         .worksheet-scroll-strip {
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
             justify-content: center !important;
-            overflow-x: auto;
+            overflow-x: visible;
             overflow-y: visible;
             -webkit-overflow-scrolling: touch;
         }
@@ -623,16 +623,14 @@
             border-bottom: 1.5px solid #b0b8b3;
         }
 
-        .sentence-display-card .worksheet-row .sentence-cell-box:not(:last-child) {
-            border-right: 1px solid #d8ddda;
-        }
+        .sentence-display-card .worksheet-row .sentence-cell-box:not(:last-child) { border-right-color: #b0b8b3; }
 
         /* ===== 统一横向滑动（与「整句展示」同款：手指左右滑，桌面布局不变） ===== */
         .scroll-slide-row {
-            overflow-x: auto;
+            overflow-x: visible;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
-            scroll-snap-type: x proximity;
+            scroll-snap-type: none;
             scrollbar-width: none;
             -ms-overflow-style: none;
             justify-content: center !important;
@@ -1384,7 +1382,7 @@
 
         /* ── 通用横向滑动容器（手机端所有需要左右滑的区域）── */
         .swipe-scroll-wrapper {
-            overflow-x: auto;
+            overflow-x: visible;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
             scroll-snap-type: x mandatory;
@@ -1504,7 +1502,6 @@
         /* ── 手机端：笔画展开区变成横向滑动 ── */
         @media (max-width: 768px) {
             /* 字帖 / 整句 / 字卡三栏：统一为整句展示式横向滑动 */
-            .worksheet-row-wrapper,
             .word-row-container,
             .card-three-cols {
                 overflow-x: auto;
@@ -1513,6 +1510,13 @@
                 scroll-snap-type: x proximity;
                 scrollbar-width: none;
                 justify-content: flex-start !important;
+                padding-bottom: 8px;
+            }
+            .worksheet-row-wrapper {
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+                scroll-snap-type: none !important;
+                justify-content: center !important;
                 padding-bottom: 8px;
             }
             .worksheet-row-wrapper::-webkit-scrollbar,
@@ -1548,9 +1552,9 @@
             }
             .sentence-display-card .worksheet-row-wrapper,
             .worksheet-scroll-strip {
-                overflow-x: auto !important;
+                overflow-x: visible !important;
                 overflow-y: visible !important;
-                justify-content: flex-start !important;
+                justify-content: center !important;
                 width: 100% !important;
                 max-width: 100% !important;
             }
@@ -3344,9 +3348,11 @@
 
     // --- 字帖米字格尺寸（与网格列宽一致，避免错位/遮挡）---
     function getWorksheetCellWidth() {
-        if (window.innerWidth <= 360) return 46;
-        if (window.innerWidth <= 480) return 58;
-        if (window.innerWidth <= 768) return 72;
+        const root = document.getElementById('unifiedWorksheetRoot') || document.getElementById('isolatedStrokesRoot');
+        const available = root ? root.getBoundingClientRect().width : window.innerWidth;
+        if (window.innerWidth <= 768) {
+            return Math.max(30, Math.min(72, Math.floor((available - 18) / 10)));
+        }
         return 85;
     }
     function worksheetGridColumns(count) {
@@ -3354,7 +3360,7 @@
     }
     function worksheetGridStyle(cellW, cols) {
         var visibleCols = Math.min(10, Math.max(1, cols));
-        return 'display:grid;grid-template-columns:repeat(' + visibleCols + ',' + cellW + 'px);gap:1px;background:#b0b8b3;padding:1px;width:fit-content;max-width:100%;margin:0 auto;';
+        return 'display:grid;grid-template-columns:repeat(' + visibleCols + ',' + cellW + 'px);gap:0;background:transparent;padding:1px 0 0 1px;width:fit-content;max-width:100%;margin:0 auto;justify-content:center;';
     }
     function createWorksheetScrollWrap() {
         var rowWrap = document.createElement('div');
