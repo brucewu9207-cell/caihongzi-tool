@@ -1502,8 +1502,7 @@
         /* ── 手机端：笔画展开区变成横向滑动 ── */
         @media (max-width: 768px) {
             /* 字帖 / 整句 / 字卡三栏：统一为整句展示式横向滑动 */
-            .word-row-container,
-            .card-three-cols {
+            .word-row-container {
                 overflow-x: auto;
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
@@ -1519,13 +1518,44 @@
                 justify-content: center !important;
                 padding-bottom: 8px;
             }
+            .card-three-cols {
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex-wrap: nowrap !important;
+                overflow: visible !important;
+                scroll-snap-type: none !important;
+                gap: 22px !important;
+                width: 100% !important;
+            }
+            .card-three-cols > div {
+                width: min(100%, 240px) !important;
+                max-width: 100% !important;
+                align-items: center !important;
+                justify-content: center !important;
+                scroll-snap-align: none !important;
+            }
+            .card-three-cols .grid-container {
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            .card-three-cols .section-label {
+                display: block !important;
+                text-align: center !important;
+            }
+            .sg-divider,
+            .sg-pebble,
+            .sg-swipe-hint,
+            .card-swipe-indicator,
+            .char-panel-dots,
+            .scroll-slide-hint {
+                display: none !important;
+            }
             .worksheet-row-wrapper::-webkit-scrollbar,
             .word-row-container::-webkit-scrollbar,
             .card-three-cols::-webkit-scrollbar { display: none; }
             .worksheet-row,
-            .card-three-cols {
-                flex-wrap: nowrap !important;
-            }
+            .card-three-cols { flex-wrap: nowrap !important; }
             .worksheet-cell { scroll-snap-align: start; }
 
             .word-row-container {
@@ -1536,13 +1566,7 @@
                 max-width: 500px;
                 scroll-snap-align: start;
             }
-            .card-three-cols > div {
-                flex: 0 0 auto;
-                scroll-snap-align: start;
-            }
-            .card-three-cols .section-label {
-                display: block !important;
-            }
+            .card-three-cols > div { flex: 0 0 auto; }
 
             /* 句子展示 / 彩虹笔画 / 字帖：横向滚动且不被裁切 */
             .sentence-display-card,
@@ -3783,39 +3807,6 @@
                     <span class="trans-label-ar">الجملة</span>
                 </div>
             `;
-            // ── 词语拆分区（放在翻译上方，在sentenceCard内）──
-            const vocabSegments = segmentHSK(inputText);
-            if (vocabSegments.length > 0) {
-                const vocabBlock = document.createElement('div');
-                vocabBlock.style.cssText = 'padding:12px 16px; border-bottom:1px dashed #ddd; margin-bottom:0;';
-                const vocabTitle = document.createElement('div');
-                vocabTitle.style.cssText = 'font-size:12px; color:var(--ink-green); font-weight:bold; margin-bottom:10px; letter-spacing:1px;';
-                vocabTitle.innerHTML = '词语解析 Vocabulary Analysis · <span style="font-family:Tahoma,sans-serif;">تحليل المفردات</span>';
-                vocabBlock.appendChild(vocabTitle);
-                const vocabGrid = document.createElement('div');
-                vocabGrid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px;';
-                vocabSegments.forEach(v => {
-                    const lc = hskLevelColor(v.l);
-                    const card = document.createElement('div');
-                    card.style.cssText = `border:1.5px solid #b33939; border-radius:6px; padding:8px 12px; background:rgba(179,57,57,0.05); min-width:90px; text-align:center;`;
-                    const arId = `vocab_ar_${Math.random().toString(36).slice(2)}`;
-                    card.innerHTML = `
-                        <div style="font-size:20px;font-weight:bold;color:var(--ink-green);font-family:'KaiTi','STKaiti',serif;letter-spacing:1px;">${v.word}</div>
-                        <div style="font-size:11px;color:var(--zhusha);margin:2px 0;">${v.p || ''}</div>
-                        <div style="font-size:10px;font-weight:bold;color:#b33939;background:rgba(179,57,57,0.15);border-radius:3px;padding:1px 6px;display:inline-block;margin:3px 0;">HSK ${v.l}</div>
-                        <div style="font-size:11px;color:var(--mo-mid);margin-top:3px;">${v.e}</div>
-                        <div id="${arId}" style="font-size:11px;color:var(--mo-light);font-family:Tahoma,sans-serif;direction:rtl;margin-top:2px;">…</div>
-                    `;
-                    vocabGrid.appendChild(card);
-                    claudeTranslate(v.word).then(r => {
-                        const el = document.getElementById(arId);
-                        if (el) el.textContent = r.ar || '';
-                    });
-                });
-                vocabBlock.appendChild(vocabGrid);
-                sentenceCard.appendChild(vocabBlock);
-            }
-
             sentenceCard.appendChild(translationBox);
             
             // 卡片放入 wrapper
@@ -5600,6 +5591,7 @@
         // ── 2. word-row-container 卡片滑动指示器 ──
         // 动态注入：每次内容生成后重新绑定
         function initCardSwipeIndicator(container) {
+            return;
             if (!container || !isMobile()) return;
             // 已有指示器则移除重建
             const existing = container.nextElementSibling;
@@ -5665,18 +5657,14 @@
             }, { passive: true });
         }
 
-        // ── 5. 统一滑动提示（整句展示同款，仅手机端且有横向溢出时）──
+        // ── 5. 统一滑动提示（仅保留大卡片横向浏览提示）──
         function addWorksheetSwipeHints() {
             if (!isMobile()) return;
-            var selectors = '.worksheet-row-wrapper, .worksheet-scroll-strip, .word-row-container, .card-three-cols, .sg-top-row';
+            var selectors = '.word-row-container, .sg-top-row';
             document.querySelectorAll(selectors).forEach(function(wrapper) {
                 if (wrapper.dataset.hintInit) return;
                 wrapper.dataset.hintInit = '1';
                 wrapper.classList.add('scroll-slide-row');
-                if (wrapper.classList.contains('worksheet-row-wrapper')) {
-                    var row = wrapper.querySelector('.worksheet-row');
-                    if (row) row.classList.add('scroll-slide-inner');
-                }
                 if (wrapper.scrollWidth <= wrapper.clientWidth + 10) return;
                 var hint = document.createElement('div');
                 hint.className = 'scroll-slide-hint';
@@ -5738,13 +5726,13 @@
         document.querySelectorAll('.card-three-cols').forEach(function(el) {
             delete el.dataset.mobileHidden;
             delete el.dataset.mobileInit;
-            el.classList.add('scroll-slide-row');
+            el.classList.remove('scroll-slide-row');
         });
         document.querySelectorAll('.word-row-container').forEach(function(el) {
             el.classList.add('scroll-slide-row');
         });
         if (window.innerWidth <= 768 && typeof window.__addWorksheetSwipeHints === 'function') {
-            document.querySelectorAll('.card-three-cols, .word-row-container').forEach(function(el) {
+            document.querySelectorAll('.word-row-container').forEach(function(el) {
                 delete el.dataset.hintInit;
             });
             window.__addWorksheetSwipeHints();
