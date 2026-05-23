@@ -540,8 +540,9 @@
         .acc-header:hover span { color: #fcfdfc !important; }
         .acc-header:hover::after { color: #fff; }
         
-        .acc-content { max-height: 0; overflow: hidden; opacity: 0; padding: 0 24px; }
-        .acc-content.active { max-height: none; padding: 24px 4%; opacity: 1; overflow: visible; }
+        .acc-content { max-height: 0; overflow: hidden; opacity: 0; padding: 0 24px; transition: max-height 0.45s ease, opacity 0.35s ease, padding 0.35s ease; }
+        .acc-content.active { max-height: 12000px; padding: 24px 4%; opacity: 1; overflow: visible; }
+        .acc-header { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
         .canvas-area { display: flex; flex-direction: column; gap: 30px; align-items: center; width: 100%; }
         .word-row-container { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; width: 100%; }
@@ -1654,6 +1655,7 @@
         /* 面板容器：横向滑动轨道 */
         .char-panel-track {
             display: flex;
+            flex-wrap: nowrap;
             width: 100%;
             overflow: hidden; /* JS控制translate */
             position: relative;
@@ -2536,7 +2538,7 @@
         
         <!-- 模块1：动态/彩虹笔顺 -->
         <div class="acc-item">
-            <div class="acc-header active" onclick="toggleAcc('acc-anim-main')">
+            <div class="acc-header active" data-acc-id="acc-anim-main">
                 <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
                     <div class="acc-inline-title">
                         <span class="acc-inline-zh">🎬 1. 循环动画</span>
@@ -2555,7 +2557,7 @@
 
         <!-- 模块2：彩虹笔画分解 -->
         <div class="acc-item">
-            <div class="acc-header" onclick="toggleAcc('acc-isolated-strokes')">
+            <div class="acc-header" data-acc-id="acc-isolated-strokes">
                 <div class="acc-inline-title" style="flex:1;">
                     <span class="acc-inline-zh">🌈 3. 彩虹笔画</span>
                     <span class="acc-inline-sub">Rainbow Strokes · ضربات قوس قزح</span>
@@ -2568,7 +2570,7 @@
 
         <!-- 模块3：部件面板 -->
         <div class="acc-item">
-            <div class="acc-header" onclick="toggleAcc('acc-comp')">
+            <div class="acc-header" data-acc-id="acc-comp">
                 <div class="acc-inline-title" style="flex:1;">
                     <span class="acc-inline-zh">🧩 4. 汉字部件</span>
                     <span class="acc-inline-sub">Character Components · أجزاء الحروف الصينية</span>
@@ -2583,7 +2585,7 @@
 
         <!-- 模块4：字帖面板 -->
         <div class="acc-item">
-            <div class="acc-header" onclick="toggleAcc('acc-unified-worksheet')">
+            <div class="acc-header" data-acc-id="acc-unified-worksheet">
                 <div class="acc-inline-title" style="flex:1;">
                     <span class="acc-inline-zh">✍ 5. 综合字帖</span>
                     <span class="acc-inline-sub">Practice Sheet · ورقة التدريب</span>
@@ -2826,12 +2828,13 @@
 <!-- ============================================================
      核心逻辑脚本 
      ============================================================ -->
-<!-- 外部 HSK 数据文件（与 HTML 放在同一文件夹即可）-->
-<script src="hsk_data.js"></script>
+<!-- 外部 HSK 数据文件（与 HTML 放在同一文件夹，须一并部署到 Vercel）-->
+<script id="hskDataScript" src="hsk_data.js"></script>
 <script>
     // ── 兜底：上面的外部文件加载失败时防崩溃 ──
     if (typeof VOCAB_DICT === 'undefined') { window.VOCAB_DICT = {}; }
     if (typeof HSK_DICT   === 'undefined') { window.HSK_DICT   = {}; }
+    window.__hskLoadFailed = (typeof HSK_DICT === 'undefined' || Object.keys(HSK_DICT).length < 10);
     // ── pinyinPro CDN 加载失败兜底 ──
     if (typeof pinyinPro === 'undefined') {
         window.pinyinPro = { pinyin: (c) => c };
@@ -3117,7 +3120,9 @@
 
     function toggleAcc(id) {
         const content = document.getElementById(id);
+        if (!content) return;
         const header = content.previousElementSibling;
+        if (!header || !header.classList.contains('acc-header')) return;
         const isActive = content.classList.contains('active');
         if (isActive) {
             content.classList.remove('active');
@@ -3128,7 +3133,40 @@
         }
     }
 
+    /** 绑定手风琴标题（兼容手机触屏，避免 onclick 偶发失效） */
+    function bindAccordionTouch() {
+        document.querySelectorAll('.acc-header').forEach(function(header) {
+            if (header.dataset.accBound) return;
+            header.dataset.accBound = '1';
+            header.setAttribute('role', 'button');
+            header.setAttribute('tabindex', '0');
+            var id = header.getAttribute('data-acc-id');
+            if (!id) {
+                var content = header.nextElementSibling;
+                if (content && content.id) id = content.id;
+            }
+            if (!id) return;
+            header.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleAcc(id);
+            });
+            header.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleAcc(id);
+                }
+            });
+        });
+    }
+
     async function initAll() {
+        // 【部署检测】HSK 数据未加载则无法生成内容
+        if (window.__hskLoadFailed) {
+            const msg = 'hsk_data.js 未加载。请确认该文件已与 234.html 一起上传到 GitHub/Vercel。';
+            if (window.__showMobileErr) window.__showMobileErr(msg);
+            alert(msg);
+            return;
+        }
         // 【手机端防御】检查关键依赖是否加载成功
         if (typeof pinyinPro === 'undefined') {
             const msg = '拼音库未加载。请检查网络连接或刷新页面重试。';
@@ -3283,8 +3321,11 @@
         document.getElementById('acc-anim-main').classList.add('active');
         document.getElementById('acc-anim-main').previousElementSibling.classList.add('active');
 
-        // 【手机端】注入三栏滑动面板（在所有字卡生成后执行）
-        setTimeout(applyMobilePanels, 300);
+        // 【手机端】注入三栏滑动面板（HanziWriter 初始化后再重组 DOM）
+        setTimeout(function() {
+            applyMobilePanels();
+            refreshWritersAfterMobileLayout();
+        }, 500);
         } catch (err) {
             // 【手机端防御】捕获 initAll 内的任何异常，避免静默失败
             console.error('[initAll] 失败:', err);
@@ -4502,11 +4543,49 @@
 
     // ==========================================
     // 背景音乐引擎 — 外部 URL · HTML5 Audio
-    // 更换音乐：仅修改下方 MUSIC_URL 即可
+    // 更换音乐：仅修改 MUSIC_FILE 文件名或 MUSIC_URL 完整地址
     // ==========================================
-    const MUSIC_URL = "./bimo_bgm_1.mp3";
+    const MUSIC_FILE = "bimo_bgm_1.mp3";
+    const MUSIC_URL = (function() {
+        if (typeof window.__MUSIC_URL_OVERRIDE === 'string' && window.__MUSIC_URL_OVERRIDE) {
+            return window.__MUSIC_URL_OVERRIDE;
+        }
+        return resolveAssetUrl(MUSIC_FILE);
+    })();
 
     let bgmUserInteracted = false;
+    let bgmEngineReady = false;
+
+    /** 根据当前页面地址解析静态资源（兼容 Vercel / 子目录 / 234.html） */
+    function resolveAssetUrl(relativePath) {
+        try {
+            return new URL(relativePath, window.location.href).href;
+        } catch (e) {
+            return relativePath;
+        }
+    }
+
+    /** 检测 hsk_data.js / mp3 是否已成功部署 */
+    async function verifyDeployedAssets() {
+        var checks = [
+            { name: 'hsk_data.js', url: resolveAssetUrl('hsk_data.js') },
+            { name: MUSIC_FILE, url: MUSIC_URL }
+        ];
+        for (var i = 0; i < checks.length; i++) {
+            var item = checks[i];
+            try {
+                var res = await fetch(item.url, { method: 'HEAD', cache: 'no-store' });
+                if (!res.ok) {
+                    throw new Error(item.name + ' HTTP ' + res.status);
+                }
+            } catch (err) {
+                var tip = '部署资源缺失: ' + item.name + '。请把三个文件都 push 到 GitHub（尤其 ' + MUSIC_FILE + ' 约7MB）。';
+                if (window.__showMobileErr) window.__showMobileErr(tip);
+                if (item.name === MUSIC_FILE) onBgmLoadError(tip);
+                if (item.name === 'hsk_data.js') window.__hskLoadFailed = true;
+            }
+        }
+    }
 
     function initBgmEngine() {
         const audio = document.getElementById('bgmAudio');
@@ -4514,19 +4593,40 @@
         if (!audio) return;
 
         audio.loop = true;
+        audio.setAttribute('playsinline', '');
         audio.src = MUSIC_URL;
         if (vol) audio.volume = Number(vol.value) / 100;
 
-        audio.addEventListener('playing', updateBgmUi);
-        audio.addEventListener('pause', updateBgmUi);
-        audio.addEventListener('waiting', updateBgmUi);
-        audio.addEventListener('ended', updateBgmUi);
-        audio.addEventListener('canplay', updateBgmUi);
-        audio.addEventListener('loadeddata', updateBgmUi);
-        audio.addEventListener('error', onBgmLoadError);
+        if (!audio.dataset.bgmBound) {
+            audio.dataset.bgmBound = '1';
+            audio.addEventListener('playing', updateBgmUi);
+            audio.addEventListener('pause', updateBgmUi);
+            audio.addEventListener('waiting', updateBgmUi);
+            audio.addEventListener('ended', updateBgmUi);
+            audio.addEventListener('canplay', function() { bgmEngineReady = true; updateBgmUi(); });
+            audio.addEventListener('loadeddata', updateBgmUi);
+            audio.addEventListener('error', function() { onBgmLoadError(); });
+        }
 
         updateBgmUi();
         audio.load();
+        installBgmFirstTapUnlock();
+    }
+
+    /** 首次点击页面任意处后尝试播放（满足移动端自动播放策略） */
+    function installBgmFirstTapUnlock() {
+        if (document.documentElement.dataset.bgmUnlock) return;
+        function tryUnlock() {
+            document.documentElement.dataset.bgmUnlock = '1';
+            bgmUserInteracted = true;
+            const audio = document.getElementById('bgmAudio');
+            if (!audio || audio.error) return;
+            if (audio.paused && bgmEngineReady) {
+                audio.play().then(updateBgmUi).catch(updateBgmUi);
+            }
+        }
+        document.addEventListener('click', tryUnlock, { once: true, capture: true });
+        document.addEventListener('touchend', tryUnlock, { once: true, capture: true });
     }
 
     function updateBgmUi() {
@@ -4550,12 +4650,12 @@
         }
     }
 
-    function onBgmLoadError() {
+    function onBgmLoadError(customMsg) {
         const err = document.getElementById('bgmError');
         const status = document.getElementById('bgmStatus');
         if (status) status.textContent = '加载失败';
         if (err) {
-            err.textContent = '音乐加载失败，请检查 MUSIC_URL 链接是否可访问';
+            err.textContent = customMsg || ('音乐加载失败：' + MUSIC_URL + ' 无法访问，请确认 ' + MUSIC_FILE + ' 已上传到 Vercel');
             err.style.display = 'block';
         }
         updateBgmUi();
@@ -4602,7 +4702,16 @@
     }
 
     window.addEventListener('DOMContentLoaded', function() {
+        var hskScript = document.getElementById('hskDataScript');
+        if (hskScript) {
+            hskScript.onerror = function() {
+                window.__hskLoadFailed = true;
+                if (window.__showMobileErr) window.__showMobileErr('hsk_data.js 加载失败');
+            };
+        }
+        bindAccordionTouch();
         initBgmEngine();
+        verifyDeployedAssets();
     });
 
     // --- 【新增】背景印章初始化引擎 ---
@@ -5769,6 +5878,25 @@
             const charIdx = parseInt(animEl.id.replace('target_anim_', ''));
             if (isNaN(charIdx)) return;
             injectCardSlidePanels(card, charIdx);
+        });
+    }
+
+    /** 手机端面板重组后，按可见格子尺寸刷新 HanziWriter 显示 */
+    function refreshWritersAfterMobileLayout() {
+        if (!isMobilePortrait() || !writers || !writers.length) return;
+        writers.forEach(function(w, i) {
+            var animEl = document.getElementById('target_anim_' + i);
+            var rbEl = document.getElementById('target_rb_' + i);
+            var size = (animEl && animEl.offsetWidth) ? animEl.offsetWidth : 180;
+            try {
+                if (w && typeof w.resize === 'function') {
+                    w.resize(size, size);
+                }
+            } catch (e) { /* 旧版无 resize 则忽略 */ }
+            if (rbEl && rbEl.offsetWidth === 0 && animEl) {
+                rbEl.style.width = size + 'px';
+                rbEl.style.height = size + 'px';
+            }
         });
     }
 
